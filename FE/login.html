@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Chatbot 17</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="auth-page">
+    <div class="auth-container">
+        <!-- Left Side - Introduction (70%) -->
+        <div class="auth-intro">
+            <div class="intro-content">
+                <div class="brand">
+                    <i class="fas fa-comments"></i>
+                    <h1>CHATBOT 17</h1>
+                </div>
+
+                <h2>Tư vấn thông tin PTIT</h2>
+            </div>
+        </div>
+
+        <!-- Right Side - Login/Register (30%) -->
+        <div class="auth-form-section">
+            <button class="theme-toggle-auth" id="themeToggleAuth" title="Chuyển đổi chế độ sáng/tối">
+                <i class="fas fa-sun"></i>
+            </button>
+
+            <div class="auth-form-container">
+                <!-- Login Form -->
+                <div class="auth-form active" id="loginForm">
+                    <h2>Đăng nhập</h2>
+
+                    <form onsubmit="return handleLogin(event)">
+                        <div class="form-group">
+                            <label for="loginEmail">Email</label>
+                            <input type="email" id="loginEmail" placeholder="name@example.com" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="loginPassword">Mật khẩu</label>
+                            <input type="password" id="loginPassword" placeholder="Nhập mật khẩu" required>
+                        </div>
+
+                        <button type="submit" class="btn-primary">
+                            <span>Đăng nhập</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </form>
+
+                    <p class="switch-form">
+                        Chưa có tài khoản?
+                        <a href="#" onclick="showRegisterForm(event)">Đăng ký ngay</a>
+                    </p>
+                </div>
+
+                <!-- Register Form -->
+                <div class="auth-form" id="registerForm">
+                    <h2>Đăng ký</h2>
+
+                    <form onsubmit="return handleRegister(event)">
+                        <div class="form-group">
+                            <label for="registerName">Họ và tên</label>
+                            <input type="text" id="registerName" placeholder="Nguyễn Văn A" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="registerEmail">Email</label>
+                            <input type="email" id="registerEmail" placeholder="name@example.com" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="registerPassword">Mật khẩu</label>
+                            <input type="password" id="registerPassword" placeholder="Tối thiểu 6 ký tự" required
+                                minlength="6">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="registerConfirmPassword">Xác nhận mật khẩu</label>
+                            <input type="password" id="registerConfirmPassword" placeholder="Nhập lại mật khẩu"
+                                required>
+                        </div>
+
+                        <button type="submit" class="btn-primary">
+                            <span>Đăng ký</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </form>
+
+                    <p class="switch-form">
+                        Đã có tài khoản?
+                        <a href="#" onclick="showLoginForm(event)">Đăng nhập</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+</body>
+
+</html>
