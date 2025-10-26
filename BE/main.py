@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from BE.core.config import settings
 from BE.db.session import Base, engine
-from BE.routers import auth as auth_router
+from BE.controllers import auth as auth_controller
 import logging
 
 app = FastAPI(title="Chatbot17 API")
@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth_router.router)
+app.include_router(auth_controller.router)
 
 # Tạo bảng khi ứng dụng khởi động; ghi log chi tiết và đánh dấu trạng thái DB
 @app.on_event("startup")

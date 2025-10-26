@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
-from ..repositories.UserRepo import UserRepo
+from ..dao.UserDAO import UserDAO
 
+# Service: Tầng xử lý logic nghiệp vụ
 class AuthService:
     @staticmethod
     def checkLogin(db: Session, email: str, password: str):
-        user = UserRepo.checkUser(db, email, password)
+        user = UserDAO.checkUser(db, email, password)
         if not user:
             return {"ok": False, "message": "Email hoặc mật khẩu không đúng"}
         return {
@@ -15,10 +16,10 @@ class AuthService:
 
     @staticmethod
     def register(db: Session, name: str, email: str, password: str):
-        existed = UserRepo.find_by_email(db, email)
+        existed = UserDAO.find_by_email(db, email)
         if existed:
             return {"ok": False, "message": "Email đã tồn tại"}
-        user = UserRepo.create(db, name, email, password)
+        user = UserDAO.create(db, name, email, password)
         return {
             "ok": True,
             "message": "Đăng ký thành công",
@@ -27,7 +28,7 @@ class AuthService:
 
     @staticmethod
     def getProfile(db: Session, user_id: int):
-        user = UserRepo.find_by_id(db, user_id)
+        user = UserDAO.find_by_id(db, user_id)
         if not user:
             return {"ok": False, "message": "Người dùng không tồn tại"}
         return {
