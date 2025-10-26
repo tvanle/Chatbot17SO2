@@ -14,7 +14,9 @@ class Message(Base):
     chat_id = Column(Integer, ForeignKey("tblChat.id"), nullable=False, index=True)
     type = Column(SQLEnum(MessageType), nullable=False)
     content = Column(Text, nullable=False)
+    model_id = Column(Integer, ForeignKey("tblModel.id"), nullable=True, index=True)  # ID của model AI được sử dụng
     created_at = Column(DateTime, server_default=func.now())
 
-    # Relationship
+    # Relationships
     chat = relationship("Chat", back_populates="messages")
+    model = relationship("Model")

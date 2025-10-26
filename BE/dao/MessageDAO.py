@@ -4,8 +4,8 @@ from BE.models.Message import Message, MessageType
 
 class MessageDAO:
     @staticmethod
-    def create(db: Session, chat_id: int, msg_type: MessageType, content: str) -> Message:
-        message = Message(chat_id=chat_id, type=msg_type, content=content)
+    def create(db: Session, chat_id: int, msg_type: MessageType, content: str, model_id: int = None) -> Message:
+        message = Message(chat_id=chat_id, type=msg_type, content=content, model_id=model_id)
         db.add(message)
         db.commit()
         db.refresh(message)

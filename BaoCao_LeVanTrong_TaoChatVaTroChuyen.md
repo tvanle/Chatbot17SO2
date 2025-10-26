@@ -26,17 +26,35 @@
 | **chat_id** | Integer | FOREIGN KEY → tblChat.id, NOT NULL, INDEX | ID đoạn chat chứa tin nhắn |
 | **type** | Enum | NOT NULL | Loại tin nhắn: "user" hoặc "assistant" |
 | **content** | Text | NOT NULL | Nội dung tin nhắn |
+| **model_id** | Integer | FOREIGN KEY → tblModel.id, NULL, INDEX | ID model AI được sử dụng |
 | **created_at** | DateTime | DEFAULT NOW() | Thời gian gửi |
 
-### 1.3. Sơ đồ quan hệ
+### 1.3. Bảng tblModel (Model AI)
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
+|---------|--------------|-----------|-------|
+| **id** | Integer | PRIMARY KEY, AUTO_INCREMENT | ID model |
+| **name** | String(100) | NOT NULL, UNIQUE | Tên model (vd: ChatGPT 4o) |
+| **description** | Text | NULL | Mô tả model |
+| **is_active** | Boolean | NOT NULL, DEFAULT TRUE | Model có đang hoạt động |
+| **api_identifier** | String(100) | NULL | Mã định danh API (vd: gpt-4o) |
+
+### 1.4. Sơ đồ quan hệ
 
 ```
+                    ┌─────────────┐
+                    │  tblModel   │
+                    └──────┬──────┘
+                           │ (1)
+                           │
+                           │ (n)
 tblUser (1) ─────< (n) tblChat (1) ─────< (n) tblMessage
 ```
 
 **Giải thích:**
 - Một User có nhiều Chat (quan hệ 1-n)
 - Một Chat có nhiều Message (quan hệ 1-n)
+- Một Model có thể được sử dụng trong nhiều Message (quan hệ 1-n)
 - Khi xóa Chat → tự động xóa các Message liên quan (CASCADE)
 
 ---
@@ -94,10 +112,12 @@ class Message(Base):
     chat_id = Column(Integer, ForeignKey("tblChat.id"), nullable=False, index=True)
     type = Column(SQLEnum(MessageType), nullable=False)
     content = Column(Text, nullable=False)
+    model_id = Column(Integer, ForeignKey("tblModel.id"), nullable=True, index=True)
     created_at = Column(DateTime, server_default=func.now())
 
     # Quan hệ
     chat = relationship("Chat", back_populates="messages")
+    model = relationship("Model")
 ```
 
 **Mô tả thuộc tính:**
@@ -105,8 +125,36 @@ class Message(Base):
 - `chat_id`: ID đoạn chat chứa tin nhắn (khóa ngoại)
 - `type`: Loại tin nhắn (user hoặc assistant)
 - `content`: Nội dung tin nhắn
+- `model_id`: ID model AI được sử dụng để tạo phản hồi (khóa ngoại, chỉ lưu cho tin nhắn assistant)
 - `created_at`: Thời điểm gửi tin nhắn
 - `chat`: Tham chiếu đến đoạn chat (relationship)
+- `model`: Tham chiếu đến model AI (relationship)
+
+---
+
+### 2.3. Lớp Model (BE/models/Model.py)
+
+```python
+from sqlalchemy import Column, Integer, String, Text, Boolean
+from BE.db.session import Base
+
+class Model(Base):
+    __tablename__ = "tblModel"
+
+    # Thuộc tính
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=False, unique=True)
+    description = Column(Text, nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
+    api_identifier = Column(String(100), nullable=True)
+```
+
+**Mô tả thuộc tính:**
+- `id`: Định danh duy nhất của model
+- `name`: Tên hiển thị của model (vd: "ChatGPT 4o")
+- `description`: Mô tả chi tiết về model
+- `is_active`: Trạng thái hoạt động của model (TRUE = đang sử dụng được)
+- `api_identifier`: Mã định danh khi gọi API AI (vd: "gpt-4o")
 
 ---
 
@@ -117,6 +165,8 @@ class Message(Base):
 **File: FE/index.html**
 - `btnNewChat: Button` - Nút tạo chat mới
 - `btnChatHistory: Button` - Nút chọn chat cũ (trên sidebar)
+- `modelSelector: Button` - Nút chọn model AI
+- `currentModel: Span` - Hiển thị model đang chọn
 - `txtChat: Textarea` - Ô nhập tin nhắn
 - `btnSend: Button` - Nút gửi tin nhắn
 - `lblMessage: Label` - Hiển thị tin nhắn trên màn hình
@@ -143,7 +193,7 @@ const apiService = {
     + getChatList(userId): Promise<Response>
     + getChatMessages(chatId): Promise<Response>
     + createChat(userId, title): Promise<Response>
-    + sendMessage(chatId, content): Promise<Response>
+    + sendMessage(chatId, content, model?): Promise<Response>
     + getModels(): Promise<Response>
 }
 ```
@@ -156,11 +206,11 @@ const apiService = {
 ```python
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
-+ new_chat(user_id: int, title: str, db: Session): JSONResponse
++ create_chat(user_id: int, title: str, db: Session): JSONResponse
 + get_chat_list(user_id: int, db: Session): JSONResponse
 + get_chat_messages(chat_id: int, db: Session): JSONResponse
-+ send_message(chat_id: int, content: str, db: Session): JSONResponse
-+ get_models(): JSONResponse
++ send_message(chat_id: int, content: str, model: str, db: Session): JSONResponse
++ get_models(db: Session): JSONResponse
 ```
 
 ---
@@ -173,8 +223,8 @@ class ChatService:
     + create_chat(db: Session, user_id: int, title: str): dict
     + get_chat_list(db: Session, user_id: int): dict
     + get_chat_messages(db: Session, chat_id: int): dict
-    + send_message(db: Session, chat_id: int, content: str): dict
-    + get_models(): dict
+    + send_message(db: Session, chat_id: int, content: str, model_name: str): dict
+    + get_models(db: Session): dict
 ```
 
 ---
@@ -194,9 +244,19 @@ class ChatDAO:
 **File: BE/dao/MessageDAO.py**
 ```python
 class MessageDAO:
-    + create(db: Session, chat_id: int, msg_type: MessageType, content: str): Message
+    + create(db: Session, chat_id: int, msg_type: MessageType, content: str, model_id: int): Message
     + find_by_chat(db: Session, chat_id: int): list[Message]
     + find_by_id(db: Session, message_id: int): Message | None
+```
+
+**File: BE/dao/ModelDAO.py**
+```python
+class ModelDAO:
+    + create(db: Session, name: str, description: str, api_identifier: str): Model
+    + find_all_active(db: Session): list[Model]
+    + find_by_name(db: Session, name: str): Model | None
+    + find_by_id(db: Session, model_id: int): Model | None
+    + update_status(db: Session, model_id: int, is_active: bool): Model | None
 ```
 
 ---
@@ -531,16 +591,20 @@ User        index.html    chatManager.js    apiService.js    chat.py    chatServ
 User        index.html    chatManager.js    apiService.js    chat.py    chatService.py    MessageDAO    Database
  │               │                │                │            │              │              │             │
  │─ type & send>│                │                │            │              │              │             │
+ │               │─ get model ───>│                │            │              │              │             │
+ │               │<─ model name ──│                │            │              │              │             │
  │               │─ show user ───>│                │            │              │              │             │
- │               │                │─ sendMessage()>│            │              │              │             │
+ │               │                │─sendMsg(+model)>│            │              │              │             │
  │               │                │                │─POST /send>│              │              │             │
- │               │                │                │            │─send_message>│              │             │
+ │               │                │                │ (+ model)  │─send_message>│              │             │
  │               │                │                │            │              │─create(user)>│             │
  │               │                │                │            │              │              │─ INSERT ──>│
  │               │                │                │            │              │<TODO: AI>    │             │
- │               │                │                │            │              │─create(bot)─>│             │
+ │               │                │                │            │              │─create(bot,  │             │
+ │               │                │                │            │              │   + model)──>│             │
  │               │                │                │            │              │              │─ INSERT ──>│
- │               │                │                │            │<─{ok,bot_msg}│              │             │
+ │               │                │                │            │<─{ok,bot_msg}│              │   (w/model)│
+ │               │                │                │            │   + model    │              │             │
  │               │                │                │<─ data ────│              │              │             │
  │               │                │<─ bot_msg ─────│            │              │              │             │
  │               │<─ display bot ─│                │            │              │              │             │
@@ -554,31 +618,47 @@ User        index.html    chatManager.js    apiService.js    chat.py    chatServ
 Module "Tạo chat mới và trò chuyện" đã được thiết kế và triển khai hoàn chỉnh với:
 
 ✅ **Đã hoàn thành:**
-1. Thiết kế CSDL với 2 bảng: tblChat, tblMessage
-2. Xây dựng lớp thực thể: Chat, Message với đầy đủ relationships
-3. Tầng DAO: ChatDAO, MessageDAO xử lý truy xuất dữ liệu
+1. Thiết kế CSDL với 3 bảng: tblChat, tblMessage, tblModel
+   - tblMessage có khóa ngoại `model_id` tham chiếu đến tblModel
+   - Relationship: User (1) -> (n) Chat (1) -> (n) Message (n) <- (1) Model
+2. Xây dựng lớp thực thể: Chat, Message, Model với đầy đủ relationships
+   - Message có relationship với Model qua `model_id`
+3. Tầng DAO: ChatDAO, MessageDAO, ModelDAO xử lý truy xuất dữ liệu
+   - MessageDAO lưu `model_id` thay vì tên model
+   - ModelDAO quản lý danh sách models (find_all_active, find_by_name, ...)
 4. Tầng Service: ChatService xử lý logic nghiệp vụ
+   - send_message() nhận `model_name`, tìm kiếm `model_id` từ database
+   - get_models() trả về danh sách models từ database thay vì mock data
 5. Tầng Controller: chat.py cung cấp 5 API endpoints
+   - POST /create, GET /list, GET /messages, POST /send (nhận model), GET /models
 6. Frontend: chatManager.js, apiService.js tích hợp hoàn chỉnh
-7. Lưu trữ lịch sử chat vào database
+   - Lấy tên model từ UI (#currentModel)
+   - Gửi model_name lên BE qua API
+7. Lưu trữ lịch sử chat và model đã sử dụng vào database
+8. Hỗ trợ chọn model AI cho mỗi tin nhắn (model_id được lưu cùng tin nhắn assistant)
 
 ⚠️ **Cần hoàn thiện:**
 - Tích hợp AI model thật (hiện dùng mock response: "Xin chào! Tôi là chatbot...")
 - Chưa có file llmClient.py để gọi API AI
+- Cần seed data cho bảng tblModel (thêm các models như ChatGPT 4o, o1-mini,...)
 
 **Cấu trúc files thực tế:**
 ```
 BE/
-├── models/Chat.py           ✅
-├── models/Message.py        ✅
-├── dao/ChatDAO.py           ✅
-├── dao/MessageDAO.py        ✅
-├── services/chatService.py  ✅
-└── controllers/chat.py      ✅
+├── models/
+│   ├── Chat.py              ✅
+│   ├── Message.py           ✅ (có model_id FK)
+│   └── Model.py             ✅ (mới)
+├── dao/
+│   ├── ChatDAO.py           ✅
+│   ├── MessageDAO.py        ✅ (lưu model_id)
+│   └── ModelDAO.py          ✅ (mới)
+├── services/chatService.py  ✅ (find model by name)
+└── controllers/chat.py      ✅ (get_models có db param)
 
 FE/
-├── js/chatManager.js        ✅
-├── js/apiService.js         ✅
+├── js/chatManager.js        ✅ (lấy model từ UI)
+├── js/apiService.js         ✅ (gửi model)
 └── index.html               ✅
 ```
 

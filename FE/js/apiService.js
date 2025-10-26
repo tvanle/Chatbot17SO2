@@ -32,10 +32,13 @@ export const apiService = {
     },
 
     // Send message
-    async sendMessage(chatId, content) {
+    async sendMessage(chatId, content, model = null) {
         const formData = new FormData();
         formData.append('chat_id', chatId);
         formData.append('content', content);
+        if (model) {
+            formData.append('model', model);
+        }
 
         const resp = await fetch(`${API_BASE}/api/chat/send`, {
             method: 'POST',

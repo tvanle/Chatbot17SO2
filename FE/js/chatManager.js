@@ -162,7 +162,11 @@ export class ChatManager {
         scrollToBottom(DOM.messages);
 
         try {
-            const data = await apiService.sendMessage(this.currentChatId, text);
+            // Get selected model from UI
+            const modelElement = document.getElementById('currentModel');
+            const selectedModel = modelElement ? modelElement.textContent.trim() : null;
+
+            const data = await apiService.sendMessage(this.currentChatId, text, selectedModel);
 
             if (data.ok) {
                 // Display bot response
@@ -174,7 +178,7 @@ export class ChatManager {
                 const chat = this.chatHistories.find(c => c.id === this.currentChatId);
                 if (chat) {
                     chat.messages.push({ type: 'user', content: text });
-                    chat.messages.push({ type: 'assistant', content: data.bot_message.content });
+                    chat.messages.push({ type: 'assistant', content: data.bot_message.content, model: data.bot_message.model });
                     chat.timestamp = Date.now();
                     this.saveChatHistories();
                 }

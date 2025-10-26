@@ -39,14 +39,15 @@ def get_chat_messages(
 def send_message(
     chat_id: int = Form(...),
     content: str = Form(...),
+    model: str = Form(None),
     db: Session = Depends(get_db),
 ):
     """Gửi message và nhận response từ bot"""
-    result = ChatService.send_message(db, chat_id, content)
+    result = ChatService.send_message(db, chat_id, content, model)
     return JSONResponse(content=result, status_code=200)
 
 @router.get("/models")
-def get_models():
+def get_models(db: Session = Depends(get_db)):
     """Lấy danh sách models có thể sử dụng"""
-    result = ChatService.get_models()
+    result = ChatService.get_models(db)
     return JSONResponse(content=result, status_code=200)
