@@ -1,10 +1,10 @@
-from sqlalchemy import Column, BigInteger, String, DateTime, func
+from sqlalchemy import Column, Integer, String, DateTime, func
 from BE.db.session import Base
 
 class User(Base):
     __tablename__ = "tblUser"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False)
     email = Column(String(255), nullable=False, unique=True, index=True)
     password = Column(String(255), nullable=False)  # theo yêu cầu: không hash
