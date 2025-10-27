@@ -1,16 +1,18 @@
 """
 RAGController - HTTP endpoints for RAG operations
-Implements answer() and ingest() following the sequence diagrams
+
+TOÀN BỘ LOGIC RAG Ở ĐÂY - Controller là nơi xử lý chính
+Không cần RAGService trung gian, logic trực tiếp trong controller
 """
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
 
 from BE.db.session import get_db
 from Chatbot.entities.AnswerRequest import AnswerRequest
 from Chatbot.entities.AnswerResult import AnswerResult
 from Chatbot.entities.IngestRequest import IngestRequest
 from Chatbot.entities.IngestResult import IngestResult
+from Chatbot.entities.RetrievalHit import RetrievalHit
 from Chatbot.services.VectorizerService import VectorizerService
 from Chatbot.services.RetrieverService import RetrieverService
 from Chatbot.services.GeneratorService import GeneratorService
@@ -25,9 +27,25 @@ from Chatbot.utils.token_counter import estimate_tokens, fit_within_budget
 # Create FastAPI router
 router = APIRouter(prefix="/api/rag", tags=["RAG"])
 
-# Initialize services (singleton pattern)
-vectorizer_service = VectorizerService(embed_model="sentence-transformers/all-MiniLM-L6-v2")
-generator_service = GeneratorService(model_name="gpt-3.5-turbo", backend="openai")
+# Singleton services (tránh reload models nhiều lần)
+_vectorizer_service = None
+_generator_service = None
+
+
+def get_vectorizer_service():
+    """Get singleton VectorizerService"""
+    global _vectorizer_service
+    if _vectorizer_service is None:
+        _vectorizer_service = VectorizerService()
+    return _vectorizer_service
+
+
+def get_generator_service(model_name: str = "gpt-3.5-turbo"):
+    """Get singleton GeneratorService"""
+    global _generator_service
+    if _generator_service is None:
+        _generator_service = GeneratorService(model_name=model_name, backend="openai")
+    return _generator_service
 
 
 @router.post("/answer", response_model=AnswerResult)
@@ -35,13 +53,11 @@ async def answer(request: AnswerRequest, db: Session = Depends(get_db)):
     """
     Answer endpoint - RAG query flow
 
-    Sequence (from kichban.txt):
+    TOÀN BỘ LOGIC RAG PIPELINE Ở ĐÂY:
     1. Vectorize question
-    2. Retrieve similar chunks from vector index
-    3. Hydrate chunks and documents from DB
-    4. Take contexts within token budget
-    5. Generate answer using LLM
-    6. Return answer with citations
+    2. Retrieve similar chunks
+    3. Generate answer with LLM
+    4. Return với citations
 
     Args:
         request: AnswerRequest with question and parameters
@@ -51,10 +67,11 @@ async def answer(request: AnswerRequest, db: Session = Depends(get_db)):
         AnswerResult with generated answer and citations
     """
     try:
-        # Step 1: Vectorize question (Sequence diagram line 12-13)
-        query_vector = vectorizer_service.embed(request.question)
+        # ===== STEP 1: Vectorize question =====
+        vectorizer = get_vectorizer_service()
+        query_vector = vectorizer.embed(request.question)
 
-        # Step 2-4: Retrieve relevant chunks (Sequence diagram line 15-24)
+        # ===== STEP 2: Retrieve relevant chunks =====
         retriever = RetrieverService(db)
         hits = retriever.search(
             namespace=request.namespace_id,
@@ -65,22 +82,32 @@ async def answer(request: AnswerRequest, db: Session = Depends(get_db)):
 
         if not hits:
             return AnswerResult(
-                answer="Xin lỗi, tôi không tìm thấy thông tin liên quan đến câu hỏi của bạn.",
+                answer="Xin lỗi, tôi không tìm thấy thông tin liên quan đến câu hỏi của bạn trong cơ sở dữ liệu. "
+                       "Bạn có thể hỏi về quy chế đào tạo, thông tin tuyển sinh, hoặc các chính sách của PTIT.",
                 citations=[]
             )
 
-        # Step 5: Take contexts within token budget (Sequence diagram line 26)
+        # ===== STEP 3: Fit contexts within token budget =====
         context_texts = [hit.chunk["text"] for hit in hits if hit.chunk]
-        contexts = fit_within_budget(context_texts, request.token_budget)
+        contexts = fit_within_budget(context_texts, token_budget=request.token_budget)
 
-        # Step 6-8: Generate answer using LLM (Sequence diagram line 28-32)
-        answer_text = generator_service.generate(
+        # ===== STEP 4: Generate answer with LLM =====
+        generator = get_generator_service("gpt-3.5-turbo")
+        answer_text = generator.generate(
             question=request.question,
             contexts=contexts,
             language="vi"
         )
 
-        # Step 9: Return result with citations (Sequence diagram line 34)
+        # ===== STEP 5: Add citations =====
+        if len(hits) > 0:
+            citations_text = "\n\n📚 Nguồn tham khảo:\n"
+            for i, hit in enumerate(hits[:3], 1):
+                doc_title = hit.doc.get("title", "Tài liệu") if hit.doc else "Tài liệu"
+                citations_text += f"{i}. {doc_title} (độ liên quan: {hit.score:.2f})\n"
+            answer_text += citations_text
+
+        # ===== STEP 6: Return result =====
         return AnswerResult(
             answer=answer_text,
             citations=hits
@@ -143,7 +170,8 @@ async def ingest(request: IngestRequest, db: Session = Depends(get_db)):
 
         # Step 7-8: Embed chunks in batch (Sequence diagram line 24-25)
         chunk_texts_list = [chunk.text for chunk in chunks]
-        vectors = vectorizer_service.embed_batch(chunk_texts_list)
+        vectorizer = get_vectorizer_service()  # Sử dụng singleton
+        vectors = vectorizer.embed_batch(chunk_texts_list)
 
         # Step 9-10: Upsert vectors to index (Sequence diagram line 27-28)
         vidx = VectorIndexDAO(db)
@@ -247,9 +275,27 @@ async def health_check():
     Returns:
         Service status
     """
-    return {
-        "status": "healthy",
-        "service": "RAG API",
-        "vectorizer_model": vectorizer_service.embed_model,
-        "generator_model": generator_service.client.model_name
-    }
+    try:
+        vectorizer = get_vectorizer_service()
+        generator = get_generator_service()
+
+        return {
+            "status": "healthy",
+            "service": "RAG API",
+            "vectorizer": {
+                "model": vectorizer.embed_model,
+                "dimension": vectorizer.get_dimension(),
+                "loaded": vectorizer.model is not None
+            },
+            "generator": {
+                "model": generator.client.model_name if generator.client else "mock",
+                "backend": generator.client.backend if generator.client else "mock",
+                "loaded": generator.client is not None
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "service": "RAG API",
+            "error": str(e)
+        }

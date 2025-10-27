@@ -3,6 +3,12 @@ from BE.dao.ChatDAO import ChatDAO
 from BE.dao.MessageDAO import MessageDAO
 from BE.dao.ModelDAO import ModelDAO
 from BE.models.Message import MessageType
+import requests
+import os
+
+# Chatbot service URL (có thể chạy trên port khác hoặc server khác)
+CHATBOT_SERVICE_URL = os.getenv("CHATBOT_SERVICE_URL", "http://127.0.0.1:8000")
+
 
 class ChatService:
     @staticmethod
@@ -65,30 +71,68 @@ class ChatService:
     @staticmethod
     def send_message(db: Session, chat_id: int, content: str, model_name: str = None):
         """
-        Gửi message của user và trả về response của bot
-        Tạm thời chỉ tạo user message, sau này sẽ tích hợp AI model
+        Gửi message của user và trả về response của bot với RAG
+
+        Logic RAG đã được tách hoàn toàn sang Chatbot/services/RAGService.py
+        ChatService chỉ handle chat persistence và gọi RAGService
         """
+        # Validate chat exists
         chat = ChatDAO.find_by_id(db, chat_id)
         if not chat:
             return {"ok": False, "message": "Chat không tồn tại"}
 
-        # Tìm model_id từ tên model
+        # Lấy model info từ database (nếu có)
         model_id = None
         model_obj = None
+        llm_model = "gpt-3.5-turbo"  # Default
+
         if model_name:
             model_obj = ModelDAO.find_by_name(db, model_name)
             if model_obj:
                 model_id = model_obj.id
+                llm_model = model_obj.api_identifier or "gpt-3.5-turbo"
 
-        # Tạo user message (không lưu model cho user message)
+        # Lưu user message vào DB
         user_msg = MessageDAO.create(db, chat_id, MessageType.user, content)
 
-        # TODO: Tích hợp AI model để tạo bot response
-        # Tạm thời dùng response giả
-        bot_response = "Xin chào! Tôi là chatbot hỗ trợ PTIT. Tính năng AI đang được phát triển."
-        # Lưu model_id cho bot message
-        bot_msg = MessageDAO.create(db, chat_id, MessageType.assistant, bot_response, model_id=model_id)
+        # Gọi Chatbot service qua HTTP (microservice architecture)
+        try:
+            response = requests.post(
+                f"{CHATBOT_SERVICE_URL}/api/rag/answer",
+                json={
+                    "namespace_id": "ptit_docs",
+                    "question": content,
+                    "top_k": 5,
+                    "token_budget": 2000
+                },
+                timeout=30  # 30 seconds timeout
+            )
+            response.raise_for_status()
+            rag_result = response.json()
 
+            # Lấy answer từ RAG result
+            bot_response = rag_result.get("answer", "Xin lỗi, tôi không thể trả lời câu hỏi này.")
+            citations_count = len(rag_result.get("citations", []))
+
+        except requests.exceptions.RequestException as e:
+            # Fallback nếu Chatbot service không available
+            print(f"Chatbot service error: {e}")
+            bot_response = (
+                "Xin lỗi, hệ thống chatbot đang bảo trì. "
+                "Vui lòng thử lại sau hoặc liên hệ admin."
+            )
+            citations_count = 0
+
+        # Lưu bot message vào DB
+        bot_msg = MessageDAO.create(
+            db,
+            chat_id,
+            MessageType.assistant,
+            bot_response,
+            model_id=model_id
+        )
+
+        # Return response
         return {
             "ok": True,
             "message": "Gửi tin nhắn thành công",
@@ -106,6 +150,9 @@ class ChatService:
                 "model_name": model_obj.name if model_obj else None,
                 "created_at": bot_msg.created_at.isoformat(),
             },
+            "rag_info": {
+                "citations_count": citations_count,
+            }
         }
 
     @staticmethod
