@@ -1,0 +1,764 @@
+[
+  {
+    "id": 1,
+    "title": "Website Học Viện Công Nghệ Bưu Chính Viễn Thông",
+    "file_name": "WebsiteHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "Sổ tay sinh viên"
+  },
+  {
+    "id": 2,
+    "title": "Trang Tin Phòng Giáo Vụ Của Học Viện Công Nghệ Bưu Chính Viễn Thông",
+    "file_name": "TrangTinPhongGiaoVuCuaHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "Sổ tay sinh viên"
+  },
+  {
+    "id": 3,
+    "title": "Trang Fanpage Học Viện Công Nghệ Bưu Chính Viễn Thông",
+    "file_name": "TrangFanpageHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "Facebook"
+  },
+  {
+    "id": 4,
+    "title": "Trang Quản Lý Đào Tạo Của Học Viện Công Nghệ Bưu Chính Viễn Thông",
+    "file_name": "TrangQuanLyDaoTaoCuaHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "Sổ tay sinh viên"
+  },
+  {
+    "id": 5,
+    "title": "Slink Ptit",
+    "file_name": "SlinkPtit.md",
+    "metadata": "PTITSLINK"
+  },
+  {
+    "id": 6,
+    "title": "Các Cơ Sở Đào Tạo Của Học Viện",
+    "file_name": "CacCoSoDaoTaoCuaHocVien.md",
+    "metadata": "Website Học viện, Facebook"
+  },
+  {
+    "id": 7,
+    "title": "Sơ Đồ Tổ Chức",
+    "file_name": "SoDoToChuc.md",
+    "metadata": "Sơ đồ tổ chức – Học viện Công nghệ Bưu Chính Viễn Thông – PTIT"
+  },
+  {
+    "id": 8,
+    "title": "Đảng Ủy Học Viện Công Nghệ Bưu Chính Viễn Thông",
+    "file_name": "DangUyHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/dang-uy-hoc-vien"
+  },
+  {
+    "id": 9,
+    "title": "Hội Đồng Học Viện Công Nghệ Bưu Chính Viễn Thông",
+    "file_name": "HoiDongHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/hoi-dong-hoc-vien"
+  },
+  {
+    "id": 10,
+    "title": "Hội Đồng Khoa Học Và Đào Tạo",
+    "file_name": "HoiDongKhoaHocVaDaoTao.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/hoi-dong-khoa-hoc-va-dao-tao"
+  },
+  {
+    "id": 11,
+    "title": "Hội Đồng Giáo Sư Cơ Sở",
+    "file_name": "HoiDongGiaoSuCoSo.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/hoi-dong-giao-su-co-so"
+  },
+  {
+    "id": 12,
+    "title": "Công Đoàn Và Đoàn Thanh Niên",
+    "file_name": "CongDoanVaDoanThanhNien.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/cong-doan-va-doan-thanh-nien"
+  },
+  {
+    "id": 13,
+    "title": "Phòng Tổ Chức Cán Bộ – Lao Động",
+    "file_name": "PhongToChucCanBoLaoDong.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/phong-to-chuc-can-bo-lao-dong"
+  },
+  {
+    "id": 14,
+    "title": "Phòng Chính Trị Và Công Tác Sinh Viên",
+    "file_name": "PhongChinhTriVaCongTacSinhVien.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/phong-chinh-tri-va-cong-tac-sinh-vien"
+  },
+  {
+    "id": 15,
+    "title": "Phòng Giáo Vụ",
+    "file_name": "PhongGiaoVu.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/phong-giao-vu"
+  },
+  {
+    "id": 16,
+    "title": "Phòng Tài Chính Kế Toán",
+    "file_name": "PhongTaiChinhKeToan.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/phong-tai-chinh-ke-toan"
+  },
+  {
+    "id": 17,
+    "title": "Phòng Kế Hoạch – Đầu Tư",
+    "file_name": "PhongKeHoachDauTu.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/phong-ke-hoach-dau-tu"
+  },
+  {
+    "id": 18,
+    "title": "Phòng Đào Tạo",
+    "file_name": "PhongDaoTao.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/phong-dao-tao"
+  },
+  {
+    "id": 19,
+    "title": "Phòng Quản Lý Khoa Học Công Nghệ – Hợp Tác Quốc Tế",
+    "file_name": "PhongQuanLyKhoaHocCongNgheHopTacQuocTe.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/phong-quan-ly-khoa-hoc-cong-nghe-hop-tac-quoc-te"
+  },
+  {
+    "id": 20,
+    "title": "Trung Tâm Dịch Vụ",
+    "file_name": "TrungTamDichVu.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/trung-tam-dich-vu"
+  },
+  {
+    "id": 21,
+    "title": "Trung Tâm Khảo Thí Và Đảm Bảo Chất Lượng Giáo Dục",
+    "file_name": "TrungTamKhaoThiVaDamBaoChatLuongGiaoDuc.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/trung-tam-khao-thi-va-dam-bao-chat-luong-giao-duc"
+  },
+  {
+    "id": 22,
+    "title": "Trung Tâm Thí Nghiệm – Thực Hành",
+    "file_name": "TrungTamThiNghiemThucHanh.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/trung-tam-thi-nghiem-thuc-hanh"
+  },
+  {
+    "id": 23,
+    "title": "Trung Tâm Đào Tạo Quốc Tế",
+    "file_name": "TrungTamDaoTaoQuocTe.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/trung-tam-dao-tao-quoc-te"
+  },
+  {
+    "id": 24,
+    "title": "Trung Tâm Đào Tạo Bưu Chính Viễn Thông I",
+    "file_name": "TrungTamDaoTaoBuuChinhVienThongI.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/trung-tam-dao-tao-buu-chinh-vien-thong-1"
+  },
+  {
+    "id": 25,
+    "title": "Trung Tâm Đào Tạo Bưu Chính Viễn Thông Ii",
+    "file_name": "TrungTamDaoTaoBuuChinhVienThongIi.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/trung-tam-dao-tao-buu-chinh-vien-thong-2"
+  },
+  {
+    "id": 26,
+    "title": "Viện Kinh Tế Bưu Điện",
+    "file_name": "VienKinhTeBuuDien.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/vien-kinh-te-buu-dien"
+  },
+  {
+    "id": 27,
+    "title": "Viện Công Nghệ Thông Tin Và Truyền Thông- Cdit",
+    "file_name": "VienCongNgheThongTinVaTruyenThongCdit.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/vien-cong-nghe-thong-tin-va-truyen-thong-cdit"
+  },
+  {
+    "id": 28,
+    "title": "Viện Khoa Học Kỹ Thuật Bưu Điện",
+    "file_name": "VienKhoaHocKyThuatBuuDien.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/co-cau-to-chuc/vien-khoa-hoc-ky-thuat-buu-dien"
+  },
+  {
+    "id": 29,
+    "title": "Lịch Sử – Truyền Thống Học Viện Công Nghệ Bưu Chính Viễn Thông",
+    "file_name": "LichSuTruyenThongHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/tong-quan-hoc-vien/lich-su-truyen-thong"
+  },
+  {
+    "id": 30,
+    "title": "Tầm Nhìn - Sứ Mạng Của Học Viện Công Nghệ Bưu Chính Viễn Thông",
+    "file_name": "TamNhinSuMangCuaHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/tong-quan-hoc-vien/tam-nhin-su-mang"
+  },
+  {
+    "id": 31,
+    "title": "Triết Lý Giáo Dục Của Học Viện Công Nghệ Bưu Chính Viễn Thông",
+    "file_name": "TrietLyGiaoDucCuaHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/tong-quan-hoc-vien/triet-ly-giao-duc"
+  },
+  {
+    "id": 32,
+    "title": "Ý Nghĩa Logo Của Học Viện Công Nghệ Bưu Chính Viễn Thông",
+    "file_name": "YNghiaLogoCuaHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/tong-quan-hoc-vien/y-nghia-logo-hoc-vien"
+  },
+  {
+    "id": 33,
+    "title": "Chiến Lược Phát Triển Giai Đoạn 2021 - 2025 Tầm Nhìn 2030 Của Học Viện Công Nghệ Bưu Chính Viễn Thông",
+    "file_name": "ChienLuocPhatTrienGiaiDoan20212025TamNhin2030CuaHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "https://ptit.edu.vn/gioi-thieu/tong-quan-hoc-vien/chien-luoc-phat-trien-giai-doan-2021-2025-tam-nhin-2030"
+  },
+  {
+    "id": 34,
+    "title": "Chương Trình An Toàn Thông Tin – Chất Lượng Cao",
+    "file_name": "ChuongTrinhAnToanThongTinChatLuongCao.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/chuong-trinh-an-toan-thong-tin-chat-luong-cao"
+  },
+  {
+    "id": 35,
+    "title": "Chương Trình Công Nghệ Thông Tin (định Hướng Ứng Dụng)",
+    "file_name": "ChuongTrinhCongNgheThongTinDinhHuongUngDung.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/chuong-trinh-cong-nghe-thong-tin-dinh-huong-ung-dung/"
+  },
+  {
+    "id": 36,
+    "title": "Chương Trình Logistics Và Quản Trị Chuỗi Cung Ứng",
+    "file_name": "ChuongTrinhLogisticsVaQuanTriChuoiCungUng.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/chuong-trinh-logistics-va-quan-tri-chuoi-cung-ung/"
+  },
+  {
+    "id": 37,
+    "title": "Ngành Trí Tuệ Nhân Tạo",
+    "file_name": "NganhTriTueNhanTao.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/chuong-trinh-tri-tue-nhan-tao/"
+  },
+  {
+    "id": 38,
+    "title": "Chương Trình Công Nghệ Thông Tin Việt – Nhật",
+    "file_name": "ChuongTrinhCongNgheThongTinVietNhat.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/chuong-trinh-cong-nghe-thong-tin-viet-nhat/"
+  },
+  {
+    "id": 39,
+    "title": "Chương Trình Thiết Kế Và Phát Triển Game",
+    "file_name": "ChuongTrinhThietKeVaPhatTrienGame.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/chuong-trinh-thiet-ke-va-phat-trien-game/"
+  },
+  {
+    "id": 40,
+    "title": "Chương Trình Quan Hệ Công Chúng (ngành Marketing)",
+    "file_name": "ChuongTrinhQuanHeCongChungNganhMarketing.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/chuong-trinh-quan-he-cong-chung-nganh-marketing/"
+  },
+  {
+    "id": 41,
+    "title": "Ngành Kế Toán – Chất Lượng Cao Chuẩn Quốc Tế – Acca",
+    "file_name": "NganhKeToanChatLuongCaoChuanQuocTeAcca.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-ke-toan-chat-luong-cao-chuan-quoc-te-acca/"
+  },
+  {
+    "id": 42,
+    "title": "Ngành Công Nghệ Internet Vạn Vật (iot)",
+    "file_name": "NganhCongNgheInternetVanVatIot.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-cong-nghe-internet-van-vat-iot/"
+  },
+  {
+    "id": 43,
+    "title": "Ngành Marketing Hệ Clc",
+    "file_name": "NganhMarketingHeClc.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-marketing-he-clc/"
+  },
+  {
+    "id": 44,
+    "title": "Chương Trình Kỹ Thuật Dữ Liệu (ngành Mạng Máy Tính Và Truyền Thông Dữ Liệu)",
+    "file_name": "ChuongTrinhKyThuatDuLieuNganhMangMayTinhVaTruyenThongDuLieu.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/chuong-trinh-ky-thuat-du-lieu-nganh-mang-may-tinh-va-truyen-thong-du-lieu/"
+  },
+  {
+    "id": 45,
+    "title": "Ngành Công Nghệ Tài Chính – Fintech",
+    "file_name": "NganhCongNgheTaiChinhFintech.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-cong-nghe-tai-chinh-fintech/"
+  },
+  {
+    "id": 46,
+    "title": "Ngành Báo Chí (journalism)",
+    "file_name": "NganhBaoChiJournalism.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-bao-chi-journalism/"
+  },
+  {
+    "id": 47,
+    "title": "Ngành Kế Toán (2022)",
+    "file_name": "NganhKeToan2022.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-ke-toan-2022/"
+  },
+  {
+    "id": 48,
+    "title": "Ngành Kỹ Thuật Điều Khiển Và Tự Động Hóa",
+    "file_name": "NganhKyThuatDieuKhienVaTuDongHoa.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-ky-thuat-dieu-khien-va-tu-dong-hoa/"
+  },
+  {
+    "id": 49,
+    "title": "Ngành Công Nghệ Thông Tin Hệ Clc",
+    "file_name": "NganhCongNgheThongTinHeClc.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-cong-nghe-thong-tin-he-clc/"
+  },
+  {
+    "id": 50,
+    "title": "Ngành Kế Toán",
+    "file_name": "NganhKeToan.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-ke-toan/"
+  },
+  {
+    "id": 51,
+    "title": "Ngành Quản Trị Kinh Doanh",
+    "file_name": "NganhQuanTriKinhDoanh.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-quan-tri-kinh-doanh/"
+  },
+  {
+    "id": 52,
+    "title": "Ngành Thương Mại Điện Tử",
+    "file_name": "NganhThuongMaiDienTu.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-thuong-mai-dien-tu/"
+  },
+  {
+    "id": 53,
+    "title": "Ngành Marketing",
+    "file_name": "NganhMarketing.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-marketing/"
+  },
+  {
+    "id": 54,
+    "title": "Ngành Truyền Thông Đa Phương Tiện",
+    "file_name": "NganhTruyenThongDaPhuongTien.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-truyen-thong-da-phuong-tien/"
+  },
+  {
+    "id": 55,
+    "title": "Ngành Công Nghệ Đa Phương Tiện",
+    "file_name": "NganhCongNgheDaPhuongTien.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-cong-nghe-da-phuong-tien/"
+  },
+  {
+    "id": 56,
+    "title": "Ngành Công Nghệ Kỹ Thuật Điện, Điện Tử",
+    "file_name": "NganhCongNgheKyThuatDienDienTu.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-cong-nghe-ky-thuat-dien-dien-tu/"
+  },
+  {
+    "id": 57,
+    "title": "Ngành Kỹ Thuật Điện Tử Viễn Thông",
+    "file_name": "NganhKyThuatDienTuVienThong.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-ky-thuat-dien-tu-vien-thong/"
+  },
+  {
+    "id": 58,
+    "title": "Ngành An Toàn Thông Tin",
+    "file_name": "NganhAnToanThongTin.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-an-toan-thong-tin/"
+  },
+  {
+    "id": 59,
+    "title": "Ngành Công Nghệ Thông Tin",
+    "file_name": "NganhCongNgheThongTin.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-cong-nghe-thong-tin/"
+  },
+  {
+    "id": 60,
+    "title": "Ngành Khoa Học Máy Tính",
+    "file_name": "NganhKhoaHocMayTinh.md",
+    "metadata": "https://daotao.ptit.edu.vn/chuong-trinh-dao-tao/nganh-khoa-hoc-may-tinh/"
+  },
+  {
+    "id": 61,
+    "title": "Website Cie - Đào Tạo Quốc Tế",
+    "file_name": "WebsiteCieDaoTaoQuocTe.md",
+    "metadata": "https://cie.ptit.edu.vn/"
+  },
+  {
+    "id": 62,
+    "title": "Website Dec - Đào Tạo Từ Xa",
+    "file_name": "WebsiteDecDaoTaoTuXa.md",
+    "metadata": "https://dec.ptit.edu.vn/"
+  },
+  {
+    "id": 63,
+    "title": "Giới Thiệu Về Đào Tạo Từ Xa",
+    "file_name": "GioiThieuVeDaoTaoTuXa.md",
+    "metadata": "https://dec.ptit.edu.vn/gioi-thieu-ptit/"
+  },
+  {
+    "id": 64,
+    "title": "Tư Vấn Tuyển Sinh Đào Tạo Từ Xa",
+    "file_name": "TuVanTuyenSinhDaoTaoTuXa.md",
+    "metadata": "https://dec.ptit.edu.vn/tu-van-tuyen-sinh-ptit/"
+  },
+  {
+    "id": 65,
+    "title": "Ngành Công Nghệ Thông Tin",
+    "file_name": "NganhCongNgheThongTin.md",
+    "metadata": "https://dec.ptit.edu.vn/nganh-dao-tao-ptit/nganh-cong-nghe-thong-tin-ptit/"
+  },
+  {
+    "id": 66,
+    "title": "Ngành Quản Trị Kinh Doanh",
+    "file_name": "NganhQuanTriKinhDoanh.md",
+    "metadata": "https://dec.ptit.edu.vn/nganh-dao-tao-ptit/nganh-quan-tri-kinh-doanh-ptit/"
+  },
+  {
+    "id": 67,
+    "title": "Ngành Kỹ Thuật Điện Tử Viễn Thông",
+    "file_name": "NganhKyThuatDienTuVienThong.md",
+    "metadata": "https://dec.ptit.edu.vn/nganh-dao-tao-ptit/nganh-ky-thuat-dien-tu-vien-thong-ptit/"
+  },
+  {
+    "id": 68,
+    "title": "Website Quản Lý Đào Tạo Của Đào Tạo Từ Xa",
+    "file_name": "WebsiteQuanLyDaoTaoCuaDaoTaoTuXa.md",
+    "metadata": "https://qldt.pttc1.edu.vn/"
+  },
+  {
+    "id": 69,
+    "title": "Website Lớp Học Của Đào Tạo Từ Xa",
+    "file_name": "WebsiteLopHocCuaDaoTaoTuXa.md",
+    "metadata": "https://lms.pttc1.edu.vn/login/index.php"
+  },
+  {
+    "id": 70,
+    "title": "Website Thư Viện Số Của Ptit",
+    "file_name": "WebsiteThuVienSoCuaPtit.md",
+    "metadata": "https://dlib.ptit.edu.vn/"
+  },
+  {
+    "id": 71,
+    "title": "Website Eript - Đào Tạo Vừa Học Vừa Làm (vhvl)",
+    "file_name": "WebsiteEriptDaoTaoVuaHocVuaLamVhvl.md",
+    "metadata": "https://eript.ptit.edu.vn/"
+  },
+  {
+    "id": 72,
+    "title": "Giới Thiệu Chung",
+    "file_name": "GioiThieuChung.md",
+    "metadata": "https://eript.ptit.edu.vn/gioi-thieu-chung/"
+  },
+  {
+    "id": 73,
+    "title": "Cơ Cấu Tổ Chức",
+    "file_name": "CoCauToChuc.md",
+    "metadata": "https://eript.ptit.edu.vn/so-do-to-chuc/don-vi-1/"
+  },
+  {
+    "id": 74,
+    "title": "Giảng Viên",
+    "file_name": "GiangVien.md",
+    "metadata": "https://eript.ptit.edu.vn/giang-vien/"
+  },
+  {
+    "id": 75,
+    "title": "Chương Trình Đào Tạo",
+    "file_name": "ChuongTrinhDaoTao.md",
+    "metadata": "https://eript.ptit.edu.vn/gioi-thieu-chung/dao-tao/"
+  },
+  {
+    "id": 76,
+    "title": "Đào Tạo",
+    "file_name": "DaoTao.md",
+    "metadata": "https://eript.ptit.edu.vn/dao-tao/"
+  },
+  {
+    "id": 77,
+    "title": "Website Pttc - Đào Tạo Bồi Dưỡng",
+    "file_name": "WebsitePttcDaoTaoBoiDuong.md",
+    "metadata": "https://pttc1.edu.vn/"
+  },
+  {
+    "id": 78,
+    "title": "Cổng Thông Tin Đào Tạo",
+    "file_name": "CongThongTinDaoTao.md",
+    "metadata": "https://daotao.ptit.edu.vn/"
+  },
+  {
+    "id": 79,
+    "title": "Cổng Xác Thực Thông Tin Văn Bằng (tra Cứu Văn Bằng)",
+    "file_name": "CongXacThucThongTinVanBangTraCuuVanBang.md",
+    "metadata": "https://quanlydaotao.ptit.edu.vn/tra-cuu-van-bang"
+  },
+  {
+    "id": 80,
+    "title": "Cổng Thông Tin Tuyển Sinh Đại Học",
+    "file_name": "CongThongTinTuyenSinhDaiHoc.md",
+    "metadata": "https://tuyensinh.ptit.edu.vn/thong-bao/tuyen-sinh-dai-hoc/"
+  },
+  {
+    "id": 81,
+    "title": "Thông Tin Tuyển Sinh Đại Học Chính Quy Năm 2025 - Học Viện Công Nghệ Bưu Chính Viễn Thông",
+    "file_name": "ThongTinTuyenSinhDaiHocChinhQuyNam2025HocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "https://tuyensinh.ptit.edu.vn/de-an-tuyen-sinh/thong-tin-tuyen-sinh-dai-hoc-chinh-quy-nam-2025/"
+  },
+  {
+    "id": 82,
+    "title": "Link Nộp Hồ Sơ Trực Tuyến",
+    "file_name": "LinkNopHoSoTrucTuyen.md",
+    "metadata": "https://xettuyen.ptit.edu.vn/"
+  },
+  {
+    "id": 83,
+    "title": "Cổng Thông Tin Hợp Tác Quốc Tế",
+    "file_name": "CongThongTinHopTacQuocTe.md",
+    "metadata": "https://english.ptit.edu.vn/vi/"
+  },
+  {
+    "id": 84,
+    "title": "Giới Thiệu Chung",
+    "file_name": "GioiThieuChung.md",
+    "metadata": "https://english.ptit.edu.vn/gioi-thieu/gioi-thieu-chung/"
+  },
+  {
+    "id": 85,
+    "title": "Thông Tin Liên Hệ",
+    "file_name": "ThongTinLienHe.md",
+    "metadata": "https://english.ptit.edu.vn/vi/gioi-thieu/thong-tin-lien-he/"
+  },
+  {
+    "id": 86,
+    "title": "Cổng Thông Tin Sinh Viên Học Viện Công Nghệ Bưu Chính Viễn Thông",
+    "file_name": "CongThongTinSinhVienHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "https://student.ptit.edu.vn/"
+  },
+  {
+    "id": 87,
+    "title": "Quy Chế Quy Định",
+    "file_name": "QuyCheQuyDinh.md",
+    "metadata": "https://student.ptit.edu.vn/quy-che-quy-dinh/"
+  },
+  {
+    "id": 88,
+    "title": "Học Viện Công Nghệ Bưu Chính Viễn Thông Sẽ Trao Học Bổng Đặc Biệt Lên Đến 500 Triệu Đồng Cho Thí Sinh Trúng Tuyển Đại Học Chính Quy 2025",
+    "file_name": "HocVienCongNgheBuuChinhVienThongSeTraoHocBongDacBietLenDen500TrieuDongChoThiSinhTrungTuyenDaiHocChinhQuy2025.md",
+    "metadata": "https://student.ptit.edu.vn/2025/04/29/hoc-vien-cong-nghe-buu-chinh-vien-thong-se-trao-hoc-bong-dac-biet-len-den-500-trieu-dong-cho-thi-sinh-trung-tuyen-dai-hoc-chinh-quy-2025-2/"
+  },
+  {
+    "id": 89,
+    "title": "Biểu Mẫu Quy Chế, Quy Định",
+    "file_name": "BieuMauQuyCheQuyDinh.md",
+    "metadata": "https://student.ptit.edu.vn/bieu-mau"
+  },
+  {
+    "id": 90,
+    "title": "Góc Lắng Nghe - Nơi Sinh Viên Bày Tỏ Những Ý Kiến Đến Với Học Viện",
+    "file_name": "GocLangNgheNoiSinhVienBayToNhungYKienDenVoiHocVien.md",
+    "metadata": "https://student.ptit.edu.vn/goc-lang-nghe"
+  },
+  {
+    "id": 91,
+    "title": "Fanpage - Đoàn Thanh Niên",
+    "file_name": "FanpageDoanThanhNien.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/doan-thanh-nien"
+  },
+  {
+    "id": 92,
+    "title": "Clb Văn Hóa Nghệ Thuật",
+    "file_name": "ClbVanHoaNgheThuat.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 93,
+    "title": "Đội Thanh Niên Vận Động Hiến Máu Học Viện Công Nghệ Bưu Chính Viễn Thông",
+    "file_name": "DoiThanhNienVanDongHienMauHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 94,
+    "title": "Clb Guitar Học Viện Công Nghệ Bưu Chính Viễn Thông - Pgc",
+    "file_name": "ClbGuitarHocVienCongNgheBuuChinhVienThongPgc.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 95,
+    "title": "Clb Taekwondo Ptit",
+    "file_name": "ClbTaekwondoPtit.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 96,
+    "title": "Đội Cờ Đỏ Ptit",
+    "file_name": "DoiCoDoPtit.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 97,
+    "title": "Clb Lập Trình Ptit",
+    "file_name": "ClbLapTrinhPtit.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 98,
+    "title": "Clb Multimedia Ptit",
+    "file_name": "ClbMultimediaPtit.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 99,
+    "title": "Clb Ema",
+    "file_name": "ClbEma.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 100,
+    "title": "Clb It Ptit",
+    "file_name": "ClbItPtit.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 101,
+    "title": "Clb Truyền Thông & Kỹ Năng Mềm S4c - Ptit",
+    "file_name": "ClbTruyenThongKyNangMemS4cPtit.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 102,
+    "title": "Clb Sổ Media",
+    "file_name": "ClbSoMedia.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 103,
+    "title": "Clb Bóng Đá Bưu Chính",
+    "file_name": "ClbBongDaBuuChinh.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 104,
+    "title": "Clb Điện Tử Ptit",
+    "file_name": "ClbDienTuPtit.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 105,
+    "title": "Clb Sách Và Hành Động Ptit",
+    "file_name": "ClbSachVaHanhDongPtit.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 106,
+    "title": "Up Community",
+    "file_name": "UpCommunity.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 107,
+    "title": "Clb Guitar Ptit - Gpc",
+    "file_name": "ClbGuitarPtitGpc.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 108,
+    "title": "Clb Gdsc Ptit",
+    "file_name": "ClbGdscPtit.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 109,
+    "title": "Clb Mc Ptit - Mcp",
+    "file_name": "ClbMcPtitMcp.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 110,
+    "title": "Clb Hỗ Trợ Học Tập - Lsc Ptit",
+    "file_name": "ClbHoTroHocTapLscPtit.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 111,
+    "title": "Đội Lễ Tân Ptit",
+    "file_name": "DoiLeTanPtit.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 112,
+    "title": "Clb Nhà Sáng Tạo Game Ptit",
+    "file_name": "ClbNhaSangTaoGamePtit.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 113,
+    "title": "Clb Công Nghệ Thông Tin Udu",
+    "file_name": "ClbCongNgheThongTinUdu.md",
+    "metadata": "https://ptit.edu.vn/sinh-vien/cau-lac-bo-sinh-vien"
+  },
+  {
+    "id": 114,
+    "title": "Gửi Xe",
+    "file_name": "GuiXe.md",
+    "metadata": ""
+  },
+  {
+    "id": 115,
+    "title": "Chỉ Đường Ptit",
+    "file_name": "ChiDuongPtit.md",
+    "metadata": "Tự tổng hợp"
+  },
+  {
+    "id": 116,
+    "title": "Mẫu 1 - Giấy/đơn/phiếu Đề Nghị",
+    "file_name": "Mau1GiayDonPhieuDeNghi.md",
+    "metadata": "https://giaovu.ptit.edu.vn/cacus-mau-bieu-thong-tin-sinh-vien-thuong-su-dung/"
+  },
+  {
+    "id": 117,
+    "title": "Mẫu 2 - Đơn Xin Vắng Thi",
+    "file_name": "Mau2DonXinVangThi.md",
+    "metadata": "https://giaovu.ptit.edu.vn/cacus-mau-bieu-thong-tin-sinh-vien-thuong-su-dung/"
+  },
+  {
+    "id": 118,
+    "title": "Mẫu 3 - Đơn Đề Nghị Cấp Lại/đổi Thẻ Sinh Viên",
+    "file_name": "Mau3DonDeNghiCapLaiDoiTheSinhVien.md",
+    "metadata": "https://giaovu.ptit.edu.vn/cacus-mau-bieu-thong-tin-sinh-vien-thuong-su-dung/"
+  },
+  {
+    "id": 119,
+    "title": "Mẫu 4 - Thẻ Sinh Viên (tạm Thời)",
+    "file_name": "Mau4TheSinhVienTamThoi.md",
+    "metadata": "https://giaovu.ptit.edu.vn/cacus-mau-bieu-thong-tin-sinh-vien-thuong-su-dung/"
+  },
+  {
+    "id": 120,
+    "title": "Mẫu 5 - Đơn Xin Ngừng Học/nghỉ Học Có Thời Hạn",
+    "file_name": "Mau5DonXinNgungHocNghiHocCoThoiHan.md",
+    "metadata": "https://giaovu.ptit.edu.vn/cacus-mau-bieu-thong-tin-sinh-vien-thuong-su-dung/"
+  },
+  {
+    "id": 121,
+    "title": "Mẫu 6 - Đơn Xin Tiếp Tục/quay Trở Lại Học Tập",
+    "file_name": "Mau6DonXinTiepTucQuayTroLaiHocTap.md",
+    "metadata": "https://giaovu.ptit.edu.vn/cacus-mau-bieu-thong-tin-sinh-vien-thuong-su-dung/"
+  },
+  {
+    "id": 122,
+    "title": "Mẫu 7 - Đơn Đăng Ký Học Lại",
+    "file_name": "Mau7DonDangKyHocLai.md",
+    "metadata": "https://giaovu.ptit.edu.vn/cacus-mau-bieu-thong-tin-sinh-vien-thuong-su-dung/"
+  },
+  {
+    "id": 123,
+    "title": "Mẫu 8 - Đơn Đề Nghị Xem Xét Điểm Thi Kết Thúc Học Phần",
+    "file_name": "Mau8DonDeNghiXemXetDiemThiKetThucHocPhan.md",
+    "metadata": "https://giaovu.ptit.edu.vn/cacus-mau-bieu-thong-tin-sinh-vien-thuong-su-dung/"
+  },
+  {
+    "id": 124,
+    "title": "Mẫu 9 - Đơn Đề Nghị Cấp Giấy Tờ",
+    "file_name": "Mau9DonDeNghiCapGiayTo.md",
+    "metadata": "https://giaovu.ptit.edu.vn/cacus-mau-bieu-thong-tin-sinh-vien-thuong-su-dung/"
+  },
+  {
+    "id": 125,
+    "title": "Trangtinphonggiaovucuahocviencongnghebuuchinhvienthong",
+    "file_name": "TrangTinPhongGiaoVuCuaHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "Crawled from PTIT website"
+  },
+  {
+    "id": 126,
+    "title": "Văn Phòng Học Viện",
+    "file_name": "VĂN PHÒNG HỌC VIỆN.md",
+    "metadata": "Crawled from PTIT website"
+  },
+  {
+    "id": 127,
+    "title": "Websitehocviencongnghebuuchinhvienthong",
+    "file_name": "WebsiteHocVienCongNgheBuuChinhVienThong.md",
+    "metadata": "Crawled from PTIT website"
+  }
+]
