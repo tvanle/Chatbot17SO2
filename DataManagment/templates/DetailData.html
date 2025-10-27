@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Detail Data</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-light">
+    <div class="container py-5">
+      <h2 class="mb-4 text-center">Detail Data</h2>
+      <button class="btn btn-secondary mb-3" id="btnReturn">Return</button>
+      <table class="table table-bordered" id="tblData">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Upload Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ file.id }}</td>
+            <td>{{ file.name }}</td>
+            <td>{{ file.status }}</td>
+            <td>{{ file.uploadDate }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="mt-4">
+        <h5>Nội dung file:</h5>
+        <div class="border p-3 bg-white" style="white-space: pre-wrap">
+          {{ file_text if file_text else '(Không có nội dung hoặc không đọc
+          được)' }}
+        </div>
+      </div>
+      <script>
+        document.getElementById("btnReturn").onclick = function () {
+          window.history.back();
+        };
+      </script>
+    </div>
+  </body>
+</html>

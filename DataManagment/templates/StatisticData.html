@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Statistic Data</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-light">
+    <div class="container py-5">
+      <h2 class="mb-4 text-center">Statistic Data</h2>
+      <div class="row mb-3">
+        <div class="col">
+          <label class="form-label">Total Text:</label>
+          <span id="totalText" class="badge bg-primary">0</span>
+        </div>
+        <div class="col">
+          <label class="form-label">Total URL:</label>
+          <span id="totalUrl" class="badge bg-success">0</span>
+        </div>
+        <div class="col">
+          <label class="form-label">Upload Date:</label>
+          <input
+            type="date"
+            class="form-control"
+            id="txtUploadDate"
+            onchange="filterByDate()"
+          />
+        </div>
+      </div>
+      <button class="btn btn-info mb-3" id="detailBtn">Detail</button>
+      <table class="table table-bordered" id="tblFileData">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Upload Date</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Dữ liệu sẽ được render bằng JS -->
+        </tbody>
+      </table>
+    </div>
+    <script>
+      // Fetch statistics from API and update view
+      let allFileData = [];
+      function loadStatistics() {
+        fetch("/api/statistic")
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("totalText").textContent = data.totalFile;
+            document.getElementById("totalUrl").textContent = data.totalUrl;
+          });
+        // Fetch file data and render table
+        fetch("/api/filedata")
+          .then((response) => response.json())
+          .then((data) => {
+            allFileData = data.filedata;
+            renderTable(allFileData);
+          });
+      }
+
+      function renderTable(fileList) {
+        const tbody = document.querySelector("#tblFileData tbody");
+        tbody.innerHTML = "";
+        fileList.forEach((file) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+                    <td>${file.id}</td>
+                    <td>${file.name}</td>
+                    <td>${file.status}</td>
+                    <td>${file.uploadDate}</td>
+                    <td><a class="btn btn-sm btn-outline-info" href="/detail/${file.id}">Detail</a></td>
+                `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function filterByDate() {
+        const dateVal = document.getElementById("txtUploadDate").value;
+        if (!dateVal) {
+          renderTable(allFileData);
+          return;
+        }
+        const filtered = allFileData.filter((file) =>
+          file.uploadDate.startsWith(dateVal)
+        );
+        renderTable(filtered);
+      }
+
+      function showDetail(fileId) {
+        // This function is no longer needed as we are using links now.
+      }
+
+      window.onload = loadStatistics;
+    </script>
+  </body>
+</html>
