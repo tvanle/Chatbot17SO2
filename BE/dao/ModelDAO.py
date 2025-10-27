@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from BE.models.Model import Model
+from typing import Optional, List
 
 class ModelDAO:
     @staticmethod
@@ -12,23 +13,23 @@ class ModelDAO:
         return model
 
     @staticmethod
-    def find_all_active(db: Session) -> list[Model]:
+    def find_all_active(db: Session) -> List[Model]:
         """Lấy tất cả models đang hoạt động"""
         stmt = select(Model).where(Model.is_active == True).order_by(Model.id)
         return list(db.execute(stmt).scalars().all())
 
     @staticmethod
-    def find_by_name(db: Session, name: str) -> Model | None:
+    def find_by_name(db: Session, name: str) -> Optional[Model]:
         """Tìm model theo tên"""
         return db.execute(select(Model).where(Model.name == name)).scalar_one_or_none()
 
     @staticmethod
-    def find_by_id(db: Session, model_id: int) -> Model | None:
+    def find_by_id(db: Session, model_id: int) -> Optional[Model]:
         """Tìm model theo ID"""
         return db.execute(select(Model).where(Model.id == model_id)).scalar_one_or_none()
 
     @staticmethod
-    def update_status(db: Session, model_id: int, is_active: bool) -> Model | None:
+    def update_status(db: Session, model_id: int, is_active: bool) -> Optional[Model]:
         """Cập nhật trạng thái hoạt động của model"""
         model = ModelDAO.find_by_id(db, model_id)
         if model:

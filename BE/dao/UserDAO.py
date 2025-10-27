@@ -1,15 +1,16 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from BE.models.User import User
+from typing import Optional
 
 # DAO: Tầng Data Access Object, xử lý truy vấn database
 class UserDAO:
     @staticmethod
-    def find_by_email(db: Session, email: str) -> User | None:
+    def find_by_email(db: Session, email: str) -> Optional[User]:
         return db.execute(select(User).where(User.email == email)).scalar_one_or_none()
 
     @staticmethod
-    def checkUser(db: Session, email: str, password: str) -> User | None:
+    def checkUser(db: Session, email: str, password: str) -> Optional[User]:
         # vì không hash nên so sánh trực tiếp password
         stmt = select(User).where(User.email == email, User.password == password)
         return db.execute(stmt).scalar_one_or_none()
@@ -23,5 +24,5 @@ class UserDAO:
         return u
 
     @staticmethod
-    def find_by_id(db: Session, user_id: int) -> User | None:
+    def find_by_id(db: Session, user_id: int) -> Optional[User]:
         return db.execute(select(User).where(User.id == user_id)).scalar_one_or_none()
