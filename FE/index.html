@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot 17</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo" id="modelSelector">
+                <span id="currentModel"></span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+
+        <div class="sidebar-actions">
+            <button class="action-btn" id="newChatBtn">
+                <i class="far fa-edit"></i>
+                <span>New chat</span>
+            </button>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>Chats</h3>
+            <div class="chat-list">
+                <button class="chat-item active">
+                    <i class="far fa-comment"></i>
+                    <span>Cổng thông tin PTIT</span>
+                </button>
+                <button class="chat-item">
+                    <span>Liên kết Phòng Giáo vụ PTIT</span>
+                </button>
+                <button class="chat-item">
+                    <span>Trang QLĐT PTIT</span>
+                </button>
+                <button class="chat-item">
+                    <span>Hệ thống Slink PTIT</span>
+                </button>
+                <button class="chat-item">
+                    <span>Địa chỉ trụ sở chính PTIT</span>
+                </button>
+                <button class="chat-item">
+                    <span>Các cơ sở đào tạo PTIT</span>
+                </button>
+                <button class="chat-item">
+                    <span>Liên hệ CTSV Hà Nội</span>
+                </button>
+                <button class="chat-item">
+                    <span>Thông tin cơ sở TP.HCM</span>
+                </button>
+                <button class="chat-item">
+                    <span>Chương trình/trao đổi quốc tế</span>
+                </button>
+                <button class="chat-item">
+                    <span>Tra cứu lịch thi & phúc khảo</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="theme-toggle" id="themeToggle" title="Chuyển đổi chế độ sáng/tối">
+                <i class="fas fa-sun"></i>
+            </button>
+            <button class="user-btn" id="userBtn">
+                <i class="fas fa-user-circle"></i>
+                <span></span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="chat-container">
+
+        <div class="messages" id="messages">
+            <div class="message user-message">
+                <div class="message-content">
+                    <p>Hi</p>
+                </div>
+            </div>
+
+            <div class="message assistant-message">
+                <div class="message-content">
+                    <p>Hi! How's it going?</p>
+                </div>
+            </div>
+
+            <div class="message user-message">
+                <div class="message-content">
+                    <p>Bạn là ai thế?</p>
+                </div>
+            </div>
+
+            <div class="message assistant-message">
+                <div class="message-content">
+                    <p>Mình là <strong>ChatGPT</strong> – một trợ lý AI có thể giúp bạn giải đáp câu hỏi, viết code, dịch văn bản, thảo luận ý tưởng, hỗ trợ học tập, làm việc, đọc ảnh – và gần như mọi thứ liên quan đến chuyên cứng bạn!</p>
+                    <p>Bạn muốn mình giúp trước hỏi của bạn về <strong>code, học tập, nghiên cứu AI, hay đời sống thường ngày</strong>?</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <div class="input-wrapper">
+                <textarea 
+                    id="messageInput" 
+                    placeholder="Hãy hỏi gì đó" 
+                    rows="1"
+                ></textarea>
+                <button class="send-btn" id="sendBtn">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
