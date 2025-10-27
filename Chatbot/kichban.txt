@@ -1,0 +1,281 @@
+Tới bạn đây — **4 sơ đồ PlantUML hoàn chỉnh**, đồng bộ theo schema RAG tối giản (PostgreSQL) và **có DAO**. Mình đã loại bỏ các cú pháp dễ lỗi (không dùng stereotype có dấu “:”, không nhét class 1 dòng, không dùng cú pháp lạ). Copy–paste từng block là render được ngay.
+
+---
+
+### 1) ERD – Document → Chunks → Embedding (1–1 giữa Chunk & Embedding)
+
+```plantuml
+@startuml
+title ERD - RAG Minimal (Document → Chunks → Embedding 1–1)
+left to right direction
+skinparam linetype ortho
+skinparam classBackgroundColor White
+
+entity "documents" as doc {
+  * id : varchar
+  --
+  source_uri : varchar
+  title : varchar
+  text : text
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "chunks" as chk {
+  * id : varchar
+  --
+  document_id : varchar
+  idx : int
+  text : text
+  tokens : int
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "embeddings" as emb {
+  * id : varchar
+  --
+  chunk_id : varchar
+  model_name : varchar
+  dim : int
+  vector_blob : blob
+  created_at : timestamp
+}
+
+doc ||--o{ chk : contains
+chk ||--|| emb : has
+@enduml
+```
+
+---
+
+### 2) Class Diagram – Không builder, có DAO + ModelClient
+
+```plantuml
+@startuml
+title RAG Module - Classes (Minimal, WITH DAO)
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+package "controllers" {
+  class RAGController {
+    - vectorizer : VectorizerService
+    - retriever  : RetrieverService
+    - generator  : GeneratorService
+    + answer(req : AnswerRequest) : AnswerResult
+    + ingest(req : IngestRequest) : IngestResult
+  }
+}
+
+package "services" {
+  class VectorizerService {
+    - embedModel : string
+    + embed(text : string) : float[]
+    + embedBatch(texts : List~string~) : List~float[]~
+  }
+
+  class RetrieverService {
+    - vidx     : VectorIndexDAO
+    - chunkDAO : ChunkDAO
+    - docDAO   : DocumentDAO
+    + search(ns : varchar, qvec : float[], topK : int, filters) : List~RetrievalHit~
+  }
+
+  class GeneratorService {
+    - client    : ModelClient
+    - maxTokens : int
+    + generate(question : string, contexts : List~string~) : string
+  }
+
+  class ModelClient {
+    - modelName : string
+    + complete(prompt : string, maxTokens : int) : string
+  }
+}
+
+package "dao" {
+  class DocumentDAO {
+    + findById(id : varchar) : Document
+    + upsert(doc : Document) : varchar
+  }
+
+  class ChunkDAO {
+    + findByIds(ids : List~varchar~) : List~Chunk~
+    + insert(chunk : Chunk) : varchar
+  }
+
+  class VectorIndexDAO {
+    + query(ns : varchar, qvec : float[], topK : int) : List~(varchar, float)~
+    + upsert(ns : varchar, pairs : List~(varchar, float[])~) : void
+  }
+}
+
+package "entities" {
+  class Document {
+    + id : varchar
+    + sourceUri : string
+    + title : string
+    + text : string
+    + createdAt : datetime
+    + updatedAt : datetime
+  }
+
+  class Chunk {
+    + id : varchar
+    + documentId : varchar
+    + idx : int
+    + text : string
+    + tokens : int
+    + createdAt : datetime
+    + updatedAt : datetime
+  }
+
+  class Embedding {
+    + id : varchar
+    + chunkId : varchar
+    + modelName : string
+    + dim : int
+    + vectorBlob : bytes
+    + createdAt : datetime
+  }
+
+  class RetrievalHit {
+    + chunkId : varchar
+    + score   : float
+    + chunk   : Chunk
+    + doc     : Document
+  }
+
+  class AnswerRequest {
+    + namespaceId : varchar
+    + question    : string
+    + topK        : int
+    + tokenBudget : int
+  }
+
+  class AnswerResult {
+    + answer    : string
+    + citations : List~RetrievalHit~
+  }
+
+  class IngestRequest {
+    + namespaceId   : varchar
+    + documentTitle : string
+    + content       : string
+  }
+
+  class IngestResult {
+    + docId      : varchar
+    + chunkCount : int
+  }
+}
+
+' Wiring
+RAGController --> VectorizerService
+RAGController --> RetrieverService
+RAGController --> GeneratorService
+GeneratorService --> ModelClient
+
+RetrieverService --> VectorIndexDAO
+RetrieverService --> ChunkDAO
+RetrieverService --> DocumentDAO
+
+' Data relationships (logical)
+Document "1" --> "*" Chunk
+Chunk "1" --> "1" Embedding
+@enduml
+```
+
+---
+
+### 3) Sequence – Answer(question): Vectorize → Retrieve (DAO hydrate) → Generate(LLM)
+
+```plantuml
+@startuml
+title Answer Flow (WITH DAO): Vectorize → Retrieve → Hydrate → Generate (LLM)
+autonumber
+skinparam responseMessageBelowArrow true
+
+actor User
+participant "RAGController" as C
+participant "VectorizerService" as V
+participant "RetrieverService" as R
+participant "VectorIndexDAO" as VI
+participant "ChunkDAO" as CD
+participant "DocumentDAO" as DD
+participant "GeneratorService" as G
+participant "ModelClient (LLM)" as M
+
+User -> C : answer(AnswerRequest{namespaceId, question, topK, tokenBudget})
+
+C -> V : embed(question)
+V --> C : qvec
+
+C -> R : search(namespaceId, qvec, topK, filters)
+R -> VI : query(namespaceId, qvec, topK)
+VI --> R : [(chunkId, score)]
+
+R -> CD : findByIds([chunkId...])
+CD --> R : List<Chunk>
+
+R -> DD : findById(chunk.documentId) [per doc]
+DD --> R : Document
+
+R --> C : hits : List<RetrievalHit{chunk, doc, score}>
+
+C -> C : contexts = takeWithinBudget(hits[].chunk.text, tokenBudget)
+
+C -> G : generate(question, contexts)
+G -> M : complete(prompt, maxTokens)
+M --> G : draftAnswer
+G --> C : answer
+
+C --> User : AnswerResult{answer, citations=hits}
+@enduml
+```
+
+---
+
+### 4) Sequence – Ingest(document): Split → Embed → Upsert(Vector)
+
+```plantuml
+@startuml
+title Ingest Flow: Split → Embed → Upsert (Minimal Schema)
+autonumber
+skinparam responseMessageBelowArrow true
+
+actor Admin
+participant "RAGController" as C
+participant "DocumentDAO" as DD
+participant "ChunkDAO" as CD
+participant "VectorizerService" as V
+participant "VectorIndexDAO" as VI
+participant "Chunker (internal)" as K
+
+Admin -> C : ingest(IngestRequest{namespaceId, documentTitle, content})
+
+C -> DD : upsert(Document{title=documentTitle, sourceUri=?, text=?})
+DD --> C : docId
+
+C -> K : split(content)
+K --> C : chunks : List<Chunk{documentId=docId, idx, text, tokens}>
+
+loop each chunk
+  C -> CD : insert(chunk)
+  CD --> C : chunkId
+end
+
+C -> V : embedBatch([chunk.text])
+V --> C : vectors : List<float[]>
+
+C -> VI : upsert(namespaceId, [(chunkId, vector)...])
+VI --> C : ok
+
+C --> Admin : IngestResult{docId, chunkCount}
+@enduml
+```
+
+---
+
+Nếu bạn muốn phương án **No-DAO** (payload text nằm trong vector store) mình cũng có thể gửi ngay 2 sơ đồ tương ứng.

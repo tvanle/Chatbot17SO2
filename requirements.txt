@@ -4,3 +4,26 @@ sqlalchemy==2.0.44
 python-multipart==0.0.20
 pymysql==1.1.2
 cryptography==46.0.3
+
+# RAG Dependencies
+sentence-transformers==2.3.1
+numpy==1.24.3
+pydantic==2.5.3
+torch==2.1.2
+
+# Optional: Advanced LLM integrations
+openai==1.12.0
+anthropic==0.18.1
+
+# Optional: Better vector stores (uncomment if needed)
+# faiss-cpu==1.7.4
+# chromadb==0.4.22
+# pinecone-client==3.0.2
+
+# Optional: Better tokenization
+# tiktoken==0.5.2
+
+# Optional: Document loaders
+# pypdf==4.0.1
+# python-docx==1.1.0
+# beautifulsoup4==4.12.3

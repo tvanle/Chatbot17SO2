@@ -4,7 +4,11 @@ from BE.core.config import settings
 from BE.db.session import Base, engine
 from BE.controllers import auth as auth_controller
 from BE.controllers import chat as chat_controller
+from Chatbot.controllers import rag_router
 import logging
+
+# Import Chatbot models to register with Base.metadata
+from Chatbot.models import Document, Chunk, Embedding
 
 app = FastAPI(title="Chatbot17 API")
 
@@ -18,6 +22,7 @@ app.add_middleware(
 
 app.include_router(auth_controller.router)
 app.include_router(chat_controller.router)
+app.include_router(rag_router)  # RAG endpoints
 
 # Tạo bảng khi ứng dụng khởi động; ghi log chi tiết và đánh dấu trạng thái DB
 @app.on_event("startup")
