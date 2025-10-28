@@ -1,0 +1,31 @@
+# Chatbot Service Dependencies (RAG System)
+# Retrieval-Augmented Generation service with vector search and LLM integration
+
+# Web Framework
+fastapi==0.120.0
+uvicorn==0.38.0
+
+# Database
+sqlalchemy==2.0.44
+pymysql==1.1.2
+cryptography==46.0.3
+
+# Data Validation
+pydantic==2.5.3
+
+# RAG Core Dependencies
+sentence-transformers==2.3.1
+numpy==1.24.3
+torch==2.1.2
+
+# LLM Integrations
+openai==1.12.0
+anthropic==0.18.1
+
+# Optional: Advanced Vector Stores (uncomment if needed)
+# faiss-cpu==1.7.4
+# chromadb==0.4.22
+# pinecone-client==3.0.2
+
+# Optional: Better Tokenization
+# tiktoken==0.5.2

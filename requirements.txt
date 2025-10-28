@@ -1,22 +1,52 @@
+# Root Requirements File
+# This file allows installing all dependencies for the entire project at once
+# Or you can install each module separately using its own requirements.txt
+
+# To install all dependencies:
+#   pip install -r requirements.txt
+
+# To install for specific modules only:
+#   pip install -r BE/requirements.txt
+#   pip install -r Chatbot/requirements.txt
+#   pip install -r DataManagement/requirements.txt
+
+# ==========================================
+# All Dependencies (Full Project)
+# ==========================================
+
+# Web Framework
 fastapi==0.120.0
 uvicorn==0.38.0
-sqlalchemy==2.0.44
 python-multipart==0.0.20
+
+# Database
+sqlalchemy==2.0.44
 pymysql==1.1.2
 cryptography==46.0.3
+
+# HTTP Client
 requests==2.31.0
 
-# RAG Dependencies
-sentence-transformers==2.3.1
-numpy==1.24.3
+# Data Validation
 pydantic==2.5.3
-torch==2.1.2
 
-# Optional: Advanced LLM integrations
+# Data Processing
+numpy==1.24.3
+pandas==2.0.3
+
+# RAG Dependencies (Chatbot)
+sentence-transformers==2.3.1
+torch==2.1.2
 openai==1.12.0
 anthropic==0.18.1
 
-# Optional: Better vector stores (uncomment if needed)
+# Document Loaders (DataManagement)
+pypdf==4.0.1
+python-docx==1.1.0
+beautifulsoup4==4.12.3
+markdown==3.5.1
+
+# Optional: Advanced vector stores (uncomment if needed)
 # faiss-cpu==1.7.4
 # chromadb==0.4.22
 # pinecone-client==3.0.2
@@ -24,7 +54,6 @@ anthropic==0.18.1
 # Optional: Better tokenization
 # tiktoken==0.5.2
 
-# Optional: Document loaders
-# pypdf==4.0.1
-# python-docx==1.1.0
-# beautifulsoup4==4.12.3
+# Optional: Excel support
+# openpyxl==3.1.2
+# xlrd==2.0.1

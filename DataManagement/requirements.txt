@@ -1,0 +1,31 @@
+# Data Management Dependencies
+# For data processing, document loading, and data preparation
+
+# Web Framework (if needed)
+fastapi==0.120.0
+uvicorn==0.38.0
+
+# Database
+sqlalchemy==2.0.44
+pymysql==1.1.2
+cryptography==46.0.3
+
+# Data Processing
+numpy==1.24.3
+pandas==2.0.3
+
+# Document Loaders
+pypdf==4.0.1
+python-docx==1.1.0
+beautifulsoup4==4.12.3
+markdown==3.5.1
+
+# File Handling
+python-multipart==0.0.20
+
+# Optional: Data Validation
+pydantic==2.5.3
+
+# Optional: Excel support
+# openpyxl==3.1.2
+# xlrd==2.0.1

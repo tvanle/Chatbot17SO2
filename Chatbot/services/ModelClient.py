@@ -102,12 +102,58 @@ class ModelClient:
     def _mock_completion(self, prompt: str) -> str:
         """
         Mock completion for testing (when no real LLM available)
+        Extracts and returns the retrieved contexts from the prompt
         """
-        return (
-            "Đây là câu trả lời mẫu từ hệ thống RAG chatbot. "
-            "Để sử dụng LLM thực, vui lòng cấu hình API key và model. "
-            f"Prompt length: {len(prompt)} chars."
-        )
+        # Log full prompt to console
+        print("\n" + "="*80)
+        print("🔍 RAG RETRIEVAL - No API Key Configured")
+        print("="*80)
+
+        # Extract contexts from prompt
+        contexts = []
+        if "THÔNG TIN THAM KHẢO:" in prompt:
+            # Extract Vietnamese context section
+            parts = prompt.split("THÔNG TIN THAM KHẢO:")
+            if len(parts) > 1:
+                context_section = parts[1].split("CÂU HỎI:")[0].strip()
+                contexts = [ctx.strip() for ctx in context_section.split("\n\n") if ctx.strip()]
+        elif "REFERENCE INFORMATION:" in prompt:
+            # Extract English context section
+            parts = prompt.split("REFERENCE INFORMATION:")
+            if len(parts) > 1:
+                context_section = parts[1].split("QUESTION:")[0].strip()
+                contexts = [ctx.strip() for ctx in context_section.split("\n\n") if ctx.strip()]
+
+        # Log extracted contexts
+        if contexts:
+            print("📚 Nội dung tìm được từ Vector Database:\n")
+            for i, ctx in enumerate(contexts, 1):
+                print(f"[{i}] {ctx}\n")
+        else:
+            print("⚠️  Không tìm thấy context trong prompt")
+
+        print("="*80)
+        print("💡 Để sinh câu trả lời tự động, vui lòng cấu hình:")
+        print("   - OPENAI_API_KEY (GPT-3.5/GPT-4)")
+        print("   - hoặc ANTHROPIC_API_KEY (Claude)")
+        print("="*80 + "\n")
+
+        # Return message to user
+        result = "⚠️ **Chưa cấu hình API Key LLM**\n\n"
+        result += "Hệ thống đã tìm thấy thông tin liên quan từ cơ sở dữ liệu, "
+        result += "nhưng cần API key để sinh câu trả lời tự động.\n\n"
+
+        if contexts:
+            result += "📚 **Thông tin tìm được:**\n\n"
+            for ctx in contexts:
+                result += f"{ctx}\n\n"
+            result += "\n---\n\n"
+
+        result += "💡 **Hướng dẫn cấu hình:**\n"
+        result += "- Thêm OPENAI_API_KEY vào file .env\n"
+        result += "- Hoặc thêm ANTHROPIC_API_KEY vào file .env\n"
+
+        return result
 
     def count_tokens(self, text: str) -> int:
         """

@@ -1,0 +1,18 @@
+# BE Service Dependencies
+# Backend service for authentication, chat management, user management
+
+# Web Framework
+fastapi==0.120.0
+uvicorn==0.38.0
+python-multipart==0.0.20
+
+# Database
+sqlalchemy==2.0.44
+pymysql==1.1.2
+cryptography==46.0.3
+
+# HTTP Client (for calling Chatbot service)
+requests==2.31.0
+
+# Data Validation
+pydantic==2.5.3
