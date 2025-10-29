@@ -41,10 +41,17 @@ def get_vectorizer_service():
 
 
 def get_generator_service(model_name: str = "gpt-3.5-turbo"):
-    """Get singleton GeneratorService"""
+    """
+    Get singleton GeneratorService
+    API key được load tự động từ .env trong ModelClient
+    """
     global _generator_service
     if _generator_service is None:
-        _generator_service = GeneratorService(model_name=model_name, backend="openai")
+        _generator_service = GeneratorService(
+            model_name=model_name,
+            max_tokens=1000,
+            backend="openai"  # API key từ OPENAI_API_KEY trong .env
+        )
     return _generator_service
 
 
@@ -91,7 +98,7 @@ async def answer(request: AnswerRequest, db: Session = Depends(get_db)):
         context_texts = [hit.chunk["text"] for hit in hits if hit.chunk]
         contexts = fit_within_budget(context_texts, token_budget=request.token_budget)
 
-        # ===== STEP 4: Generate answer with LLM =====
+        # ===== STEP 4: Generate answer with LLM (OpenAI) =====
         generator = get_generator_service("gpt-3.5-turbo")
         answer_text = generator.generate(
             question=request.question,
@@ -99,17 +106,15 @@ async def answer(request: AnswerRequest, db: Session = Depends(get_db)):
             language="vi"
         )
 
-        # ===== STEP 5: Add citations =====
-        if len(hits) > 0:
-            citations_text = "\n\n📚 Nguồn tham khảo:\n"
-            for i, hit in enumerate(hits[:3], 1):
-                doc_title = hit.doc.get("title", "Tài liệu") if hit.doc else "Tài liệu"
-                citations_text += f"{i}. {doc_title} (độ liên quan: {hit.score:.2f})\n"
-            answer_text += citations_text
+        # ===== STEP 5: Add citations (top 3 sources) =====
+        citations_text = "\n\n📚 **Nguồn tham khảo:**\n"
+        for i, hit in enumerate(hits[:3], 1):
+            doc_title = hit.doc.get("title", "Tài liệu") if hit.doc else "Tài liệu"
+            citations_text += f"[{i}] {doc_title} (độ chính xác: {hit.score:.1%})\n"
 
         # ===== STEP 6: Return result =====
         return AnswerResult(
-            answer=answer_text,
+            answer=answer_text + citations_text,
             citations=hits
         )
 
