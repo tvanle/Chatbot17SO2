@@ -6,6 +6,10 @@ from BE.controllers import auth as auth_controller
 from BE.controllers import chat as chat_controller
 from Chatbot.controllers import rag_router
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Import Chatbot models to register with Base.metadata
 from Chatbot.models import Document, Chunk, Embedding
