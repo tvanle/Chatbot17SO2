@@ -106,15 +106,9 @@ async def answer(request: AnswerRequest, db: Session = Depends(get_db)):
             language="vi"
         )
 
-        # ===== STEP 5: Add citations (top 3 sources) =====
-        citations_text = "\n\n📚 **Nguồn tham khảo:**\n"
-        for i, hit in enumerate(hits[:3], 1):
-            doc_title = hit.doc.get("title", "Tài liệu") if hit.doc else "Tài liệu"
-            citations_text += f"[{i}] {doc_title} (độ chính xác: {hit.score:.1%})\n"
-
-        # ===== STEP 6: Return result =====
+        # ===== STEP 5: Return result =====
         return AnswerResult(
-            answer=answer_text + citations_text,
+            answer=answer_text,
             citations=hits
         )
 
