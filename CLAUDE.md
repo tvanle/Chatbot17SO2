@@ -4,11 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Chatbot17SO2** is a RAG-powered chatbot system for PTIT (Hoc vien Cong nghe Buu chinh Vien thong) information consulting. It's a full-stack application with a FastAPI backend, vanilla JavaScript frontend, and a sophisticated RAG (Retrieval-Augmented Generation) system for document-based question answering.
+**Chatbot17SO2** is a RAG-powered chatbot system for PTIT (Posts and Telecommunications Institute of Technology) information consulting. The system combines authentication, chat management, RAG-based question answering with OpenAI, and data management services.
+
+**Tech Stack**: FastAPI (backend), Flask (data service), vanilla JavaScript (frontend), SQLAlchemy ORM, SQLite/MySQL database, OpenAI API, sentence-transformers for embeddings.
 
 ## Architecture
 
-The project follows a **3-tier MVC architecture with DAO pattern**, split into three main modules:
+The project follows a **3-tier MVC architecture with DAO pattern**, split into four main modules:
 
 ### 1. BE (Backend Service)
 Authentication, chat management, and user management service.
@@ -36,55 +38,82 @@ Retrieval-Augmented Generation system with vector search and LLM integration.
 2. **Ingest**: Upsert document → Split into chunks → Embed chunks → Store vectors
 
 ### 3. DataManagment (Data Processing)
+**Note the typo**: The directory is spelled `DataManagment/` (not `DataManagement/`). This is the actual working directory containing the Flask service code.
+
 Flask-based data management service for document uploads and web crawling.
+- **Port**: 5000 (Flask default)
 - **Models**: User, FileData, CrawledData
 - **Controllers**: FileDataDAO, CrawledDataDAO, StatisticDAO
-- **Features**: File upload (DOCX, TXT), web crawling, statistics
+- **Features**: File upload (DOCX, TXT), web crawling, statistics tracking
 
 ### 4. FE (Frontend)
-Vanilla JavaScript SPA with modular architecture.
-- **Structure**: `js/main.js`, `js/chatManager.js`, `js/apiService.js`, `js/uiManager.js`, `js/auth.js`
-- **Pages**: `index.html` (chat), `login.html` (auth)
-- **API Base**: `http://127.0.0.1:8000`
+Vanilla JavaScript SPA with modular ES6 architecture.
+- **Structure**:
+  - `js/main.js` - Entry point
+  - `js/apiService.js` - HTTP client for backend APIs
+  - `js/chatManager.js` - Chat business logic
+  - `js/uiManager.js` - DOM manipulation and UI updates
+  - `js/auth.js` - Authentication flows
+  - `js/config.js` - API endpoints and DOM element references
+- **Pages**: `index.html` (chat interface), `login.html` (auth)
+- **Serving**: Use Python HTTP server (`python -m http.server 8080`) or VSCode Live Server (port 5500)
 
 ## Common Commands
 
 ### Development Setup
 
 ```bash
-# Install all dependencies (from root)
+# 1. Create and activate virtual environment (recommended)
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# Mac/Linux: source .venv/bin/activate
+
+# 2. Install dependencies
 pip install -r requirements.txt
 
-# OR install per module
-pip install -r BE/requirements.txt
-pip install -r Chatbot/requirements.txt
-pip install -r DataManagement/requirements.txt
+# 3. Configure environment variables
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY
+
+# 4. Database is auto-created on first run (SQLite by default)
 ```
 
 ### Running Services
 
-**Backend (FastAPI - Port 8000)**:
+**All-in-One: Backend + RAG Service (Port 8000)**:
 ```bash
-# From root directory
+# Both BE and Chatbot services run together via BE/main.py
 python -m uvicorn BE.main:app --reload --port 8000
 
-# With hot reload for development
-uvicorn BE.main:app --reload --host 127.0.0.1 --port 8000
+# The RAG endpoints are available at /api/rag/*
+# Backend endpoints are at /api/auth/* and /api/chat/*
 ```
 
-**DataManagement Service (Flask - Port 5000)**:
+**DataManagement Service (Flask - Port 5000)** - Optional:
 ```bash
-# From root directory
+# Only needed if you want to upload files or crawl websites
 python DataManagment/main.py
 ```
 
 **Frontend**:
 ```bash
-# Serve with Python HTTP server
+# Option 1: Python HTTP server
 cd FE && python -m http.server 8080
 
-# Or use VSCode Live Server (port 5500)
-# Right-click index.html → "Open with Live Server"
+# Option 2: VSCode Live Server (recommended for hot reload)
+# Right-click FE/index.html → "Open with Live Server"
+# Runs on http://127.0.0.1:5500
+```
+
+**Quick Start (Minimal Setup)**:
+```bash
+# Terminal 1: Backend
+python -m uvicorn BE.main:app --reload --port 8000
+
+# Terminal 2: Frontend
+cd FE && python -m http.server 8080
+
+# Open browser: http://127.0.0.1:8080
 ```
 
 ### Database
@@ -176,25 +205,65 @@ Allowed origins:
 
 ## Key Implementation Details
 
+### Service Integration Architecture
+The system uses a **monolithic deployment** where both BE and Chatbot modules run in the same FastAPI process (via `BE/main.py`), but they are architecturally separated as different routers:
+- `BE/controllers/auth.py` → `/api/auth/*`
+- `BE/controllers/chat.py` → `/api/chat/*`
+- `Chatbot/controllers/RAGController.py` → `/api/rag/*` (imported in BE/main.py)
+
+The chat service calls RAG via internal function calls (not HTTP), treating RAG as a library/module.
+
 ### RAG Controller Logic
-**Important**: All RAG logic is in [Chatbot/controllers/RAGController.py](Chatbot/controllers/RAGController.py) - there is NO separate RAGService. The controller directly orchestrates VectorizerService, RetrieverService, and GeneratorService.
+**Critical Design Decision**: All RAG orchestration logic is in [Chatbot/controllers/RAGController.py](Chatbot/controllers/RAGController.py) - there is **NO separate RAGService layer**. The controller directly orchestrates:
+- `VectorizerService` - Text to vector embeddings
+- `RetrieverService` - Vector similarity search
+- `GeneratorService` - LLM answer generation via OpenAI
 
-### Database Schema
-- **documents**: Source documents (PDF, web pages, etc.)
-- **chunks**: Text segments split from documents (1 document → many chunks)
-- **embeddings**: Vector representations (1 chunk → 1 embedding)
-
-All models are SQLAlchemy ORM models registered with `Base.metadata` in [BE/main.py](BE/main.py:11).
+This violates typical 3-tier architecture but was chosen to reduce complexity for this project.
 
 ### Service Singletons
-VectorizerService and GeneratorService are singleton instances in RAGController to avoid reloading heavy ML models on every request.
+`VectorizerService` and `GeneratorService` are **singleton instances** in RAGController (using global variables `_vectorizer_service` and `_generator_service`). This is critical for performance - loading sentence-transformers models is expensive (~1-2 seconds), so we load once at startup.
 
-### Directory Structure Quirk
-Note: There are TWO directories:
-- `DataManagement/` (correct spelling, newer, only has `requirements.txt`)
-- `DataManagment/` (typo, contains actual code: `main.py`, `models/`, `controller/`)
+### Database Schema Relationships
+```
+documents (1) ──< chunks (many)
+chunks (1) ──── embeddings (1)
+```
+- **documents**: Source documents with metadata (title, source_uri, namespace)
+- **chunks**: Text segments (512 chars default) split from documents
+- **embeddings**: 384-dimensional vectors (one per chunk)
 
-**Use `DataManagment/` (with typo) for actual data management code.**
+All models inherit from `Base` (SQLAlchemy declarative base) and are registered via `Base.metadata.create_all()` in [BE/main.py](BE/main.py:30).
+
+### Critical Directory Naming Issue
+There are TWO directories with similar names:
+- `DataManagement/` - Empty except for requirements.txt (DO NOT USE)
+- `DataManagment/` - **The actual Flask service code** (USE THIS)
+
+This typo is baked into the codebase. Always use `DataManagment/` when working with the data management service.
+
+### Message Processing Flow
+Understanding the complete flow from user input to AI response:
+
+1. **User submits message** in [FE/index.html](FE/index.html)
+2. `ChatManager.sendMessage()` → `ApiService.sendMessage()`
+3. `POST /api/chat/send` → [BE/controllers/chat.py](BE/controllers/chat.py)
+4. [BE/services/chatService.py](BE/services/chatService.py):
+   - Saves user message to database via `MessageDAO`
+   - Calls RAG controller's `answer_question()` function directly (internal call, not HTTP)
+5. [Chatbot/controllers/RAGController.py](Chatbot/controllers/RAGController.py):
+   - `VectorizerService.embed()` - Convert question to vector
+   - `RetrieverService.retrieve()` - Search vector database for similar chunks
+   - `GeneratorService.generate()` - Call OpenAI API with context
+6. [Chatbot/services/ModelClient.py](Chatbot/services/ModelClient.py):
+   - Makes HTTPS POST to `https://api.openai.com/v1/chat/completions`
+   - Receives response from GPT-3.5-turbo
+7. Response flows back through services to controller
+8. Chat service saves bot message to database
+9. Returns JSON response to frontend
+10. `UIManager.displayMessage()` renders bot response
+
+**Key insight**: The RAG service is NOT a separate HTTP microservice - it's a Python module imported and called directly by the chat service.
 
 ## API Endpoints Reference
 
@@ -226,18 +295,45 @@ Note: There are TWO directories:
 
 ## Dependencies
 
-**Core RAG dependencies**:
-- `sentence-transformers==2.3.1` - Embedding model
-- `torch==2.1.2` - PyTorch backend
-- `numpy==1.24.3` - Vector operations
-- `openai==1.12.0` - OpenAI LLM API
-- `anthropic==0.18.1` - Anthropic LLM API
+The root [requirements.txt](requirements.txt) contains ALL dependencies for both BE and Chatbot modules:
 
-**Optional (commented out in requirements.txt)**:
-- `faiss-cpu` - Fast vector search (enable in `rag_config.py`)
-- `chromadb` - Alternative vector store
-- `pinecone-client` - Cloud vector store
-- `tiktoken` - Better tokenization
+**Web Framework**:
+- `fastapi==0.120.0` - Main REST API framework
+- `uvicorn==0.38.0` - ASGI server
+- `python-multipart==0.0.20` - File upload support
+
+**Database**:
+- `sqlalchemy==2.0.44` - ORM for database operations
+- `pymysql==1.1.2` - MySQL driver (optional, only if not using SQLite)
+- `cryptography==46.0.3` - For password hashing
+
+**AI/RAG**:
+- `openai==2.6.1` - **CRITICAL** - OpenAI API client for GPT models
+- `numpy==2.3.4` - Vector operations
+- `sentence-transformers` - **NOT IN requirements.txt** - You need to add this if doing embeddings
+- `torch` - **NOT IN requirements.txt** - PyTorch backend for sentence-transformers
+
+**HTTP & Configuration**:
+- `requests==2.31.0` - HTTP client
+- `httpx==0.28.1` - Async HTTP client
+- `python-dotenv==1.2.1` - Environment variable management
+- `pydantic==2.12.3` - Data validation
+
+**Missing Dependencies** (mentioned in docs but not in requirements.txt):
+```bash
+# If you need to actually use RAG embeddings, install:
+pip install sentence-transformers torch
+
+# Optional performance improvements:
+pip install faiss-cpu  # Faster vector search
+pip install tiktoken   # Better tokenization for OpenAI models
+```
+
+**DataManagment Service** (Flask):
+The Flask service has its own dependencies. Check [DataManagment/main.py](DataManagment/main.py) for imports:
+- `flask`
+- `flask-cors`
+- `python-docx` (for DOCX file parsing)
 
 ## Development Notes
 
@@ -256,94 +352,172 @@ As noted in [Chatbot/README.md](Chatbot/README.md), for production:
 4. Implement monitoring for latency, token usage, error rates
 5. Add rate limiting and JWT authentication
 
-## Code Style & Design Principles
+## Project-Specific Development Rules
 
-### Clean Code Standards
+### Architecture Constraints
+
+**Follow 3-Tier MVC + DAO Pattern** (with RAG Controller exception):
+- **Controller** → HTTP endpoints only, minimal logic
+- **Service** → Business logic (except RAG - see note below)
+- **DAO** → Database queries only
+- **Model** → SQLAlchemy ORM classes
+
+**RAG Exception**: `RAGController` contains all orchestration logic directly - there is no `RAGService`. When modifying RAG features, all logic goes in the controller.
+
+### Code Organization Rules
+
+**Module Placement**:
+- Auth/user features → `BE/controllers/auth.py`, `BE/services/authService.py`, `BE/dao/UserDAO.py`
+- Chat features → `BE/controllers/chat.py`, `BE/services/chatService.py`, `BE/dao/ChatDAO.py`, `BE/dao/MessageDAO.py`
+- RAG features → `Chatbot/controllers/RAGController.py` (no service layer), `Chatbot/services/*` (supporting services), `Chatbot/dao/*`
+- Data management → `DataManagment/` (note the typo)
 
 **Naming Conventions**:
-- Use descriptive, intention-revealing names for variables, functions, and classes
 - Python: `snake_case` for functions/variables, `PascalCase` for classes
-- JavaScript: `camelCase` for functions/variables, `PascalCase` for classes/components
-- Avoid abbreviations unless they are widely understood (e.g., `dao`, `rag`, `api`)
+- JavaScript: `camelCase` for functions/variables, `PascalCase` for classes
+- Database tables: `tblModelName` (e.g., `tblUser`, `tblChat`)
+- DAO classes: `ModelNameDAO` (e.g., `UserDAO`, `DocumentDAO`)
 
-**Function Design**:
-- Functions should do ONE thing and do it well (Single Responsibility Principle)
-- Keep functions small (ideally < 20 lines)
-- Prefer fewer function parameters (max 3-4; use objects/dicts for more)
-- Avoid side effects - functions should be predictable
+### File Creation Policy
 
-**Code Organization**:
-- Follow the existing 3-tier MVC + DAO architecture strictly
-- **Controller** → handles HTTP requests/responses only
-- **Service** → contains business logic
-- **DAO** → database access only
-- **Model** → data structures and ORM mappings
+**Do NOT create** unless explicitly requested:
+- Documentation files (`*.md`, `README.md`, `GUIDE.md`, `TODO.md`)
+- Shell scripts (`*.sh`, `*.bash`)
+- Configuration templates
+- Migration files (use SQLAlchemy auto-create)
 
-**Error Handling**:
-- Use specific exception types, not generic `Exception`
-- Always include meaningful error messages
-- Log errors with context (user_id, request_id, etc.)
-- Return appropriate HTTP status codes (400 for validation, 404 for not found, 500 for server errors)
+**Do create**:
+- Model classes when adding new database entities
+- DAO classes for new models
+- Service classes for new business logic domains
+- Controller routes for new API endpoints
 
-**Comments & Documentation**:
-- Write self-documenting code (good names > comments)
-- Use docstrings for all public functions/classes (Python) or JSDoc (JavaScript)
-- Explain WHY, not WHAT (code shows what, comments explain why)
-- Update comments when code changes
+### Database Changes
 
-### Project-Specific Rules
+- **Schema changes**: Modify Model classes, then restart server (auto-creates tables)
+- **DO NOT** use Alembic migrations unless explicitly requested
+- **DO NOT** write raw SQL - use SQLAlchemy ORM
+- Default database is SQLite (`chatbot.db` in root) - automatically created on first run
 
-**File Creation Policy**:
-- **NEVER** create documentation files (*.md, README.md, GUIDE.md, etc.) unless explicitly requested by the user
-- **NEVER** create shell script files (*.sh, *.bash) for running commands
-- **ALWAYS** run commands directly in the terminal using `bash` tool instead of creating script files
-- **NEVER** create configuration templates or example files unless explicitly requested
+### Dependency Management
 
-**Command Execution**:
-- Use direct bash commands instead of script files
-- Example: Run `uvicorn BE.main:app --reload` directly, NOT `./start.sh`
-- Chain commands with `&&` when needed: `pip install -r requirements.txt && uvicorn BE.main:app --reload`
+**Root `requirements.txt`**: Contains all dependencies for BE + Chatbot (unified install)
+- When adding dependencies, add to root `requirements.txt` with pinned versions
+- Format: `package==version` (e.g., `fastapi==0.120.0`)
 
-**Database Migrations**:
-- Use SQLAlchemy's automatic table creation (`Base.metadata.create_all()`)
-- DO NOT create Alembic migration files unless explicitly requested
-- Schema changes should be made in Model classes, not manual SQL
+**Missing Dependencies**: If you encounter import errors for `sentence-transformers` or `torch`, these are optional RAG dependencies not in requirements.txt. Install them only if needed for embedding functionality.
 
-**Dependencies**:
-- Add new dependencies to the appropriate `requirements.txt` file:
-  - `BE/requirements.txt` for backend/auth/chat features
-  - `Chatbot/requirements.txt` for RAG/ML features
-  - `DataManagement/requirements.txt` for data processing features
-- Update root `requirements.txt` only when adding project-wide dependencies
-- Pin exact versions (e.g., `fastapi==0.120.0`)
+### API Endpoint Standards
 
-**Testing**:
-- Write tests only when implementing new features (not for documentation)
-- Place tests in appropriate module: `BE/tests/`, `Chatbot/tests/`
-- Use pytest for Python tests
-- Test files should mirror source structure: `services/chatService.py` → `tests/test_chatService.py`
+- Pattern: `/api/{module}/{action}`
+- Methods: `GET` (read), `POST` (create/action), `DELETE` (delete)
+- Response format: `{"status": "success", "data": {...}}` or `{"error": "message"}`
+- Status codes: 200 (success), 400 (validation), 404 (not found), 500 (server error)
 
-**Frontend Code**:
-- Keep frontend modular: separate API calls (`apiService.js`), UI updates (`uiManager.js`), and business logic (`chatManager.js`)
-- Avoid mixing concerns in a single file
-- Use ES6+ features (arrow functions, destructuring, async/await)
-- Keep DOM queries in `config.js` for reusability
+### Frontend Code Standards
 
-**API Design**:
-- Follow existing endpoint patterns: `/api/{module}/{action}`
-- Use proper HTTP methods: GET (read), POST (create/action), DELETE (delete)
-- Return consistent JSON structure: `{"status": "success", "data": {...}}` or `{"error": "message"}`
-- Include proper status codes
+**Module Separation** (already established in codebase):
+- `apiService.js` - HTTP calls to backend
+- `chatManager.js` - Chat business logic
+- `uiManager.js` - DOM manipulation
+- `auth.js` - Authentication flows
+- `config.js` - Constants, API endpoints, DOM selectors
 
-**Security**:
-- Never commit API keys, passwords, or secrets to git
-- Use environment variables for sensitive data
-- Validate all user inputs in controllers before passing to services
-- Use parameterized queries (SQLAlchemy ORM) to prevent SQL injection
+When modifying frontend, respect these boundaries - don't mix API calls into UI code or vice versa.
 
-### Vietnamese Language Usage
+### Language Usage
 
-- All user-facing messages, error messages, and UI text should be in Vietnamese
-- Code comments can be in English or Vietnamese (consistency within a file)
-- API documentation and technical docs can be in English
-- Database content and RAG responses should be in Vietnamese for PTIT use case
+- **User-facing text**: Vietnamese (error messages, UI labels, chatbot responses)
+- **Code/comments**: English or Vietnamese (be consistent within a file)
+- **Technical docs**: English
+- **API responses**: Vietnamese content for PTIT domain
+
+### Security Rules
+
+- **Never commit**: `.env` files, API keys, passwords
+- **Always use**: Environment variables for secrets (`OPENAI_API_KEY`)
+- **Always validate**: User inputs in controllers before passing to services
+- **Database access**: Use SQLAlchemy ORM only (no raw SQL to prevent injection)
+
+## Common Issues & Troubleshooting
+
+### "ModuleNotFoundError: No module named 'sentence_transformers'"
+The embedding library is not in requirements.txt. Install if needed:
+```bash
+pip install sentence-transformers torch
+```
+
+### "OpenAI API authentication failed"
+Check your `.env` file:
+```bash
+# Must have valid API key
+OPENAI_API_KEY=sk-proj-...
+
+# Restart server after changing .env
+python -m uvicorn BE.main:app --reload --port 8000
+```
+
+### "Database is locked" (SQLite)
+SQLite doesn't handle concurrent writes well:
+```bash
+# Kill all Python processes
+pkill -f python
+
+# Delete and recreate database
+rm chatbot.db
+python -m uvicorn BE.main:app --reload --port 8000
+```
+
+For production, switch to MySQL by setting `USE_SQLITE=false` in `.env`.
+
+### CORS errors in frontend
+Ensure backend CORS settings match your frontend port. Check [BE/core/config.py](BE/core/config.py):
+```python
+CORS_ORIGINS = [
+    "http://127.0.0.1:5500",  # VSCode Live Server
+    "http://127.0.0.1:8080",  # Python HTTP Server
+    "http://127.0.0.1:3000"
+]
+```
+
+### RAG returns empty results
+Common causes:
+1. **No documents ingested** - Use `POST /api/rag/ingest` to add documents first
+2. **Embedding model not loaded** - Check console for model loading errors
+3. **Similarity threshold too high** - Lower `similarity_threshold` in [rag_config.py](Chatbot/config/rag_config.py)
+
+### Import errors when running BE/main.py
+Ensure you're running from project root:
+```bash
+# Wrong (from BE/ directory)
+cd BE && python main.py  # ❌
+
+# Correct (from root directory)
+python -m uvicorn BE.main:app --reload  # ✅
+```
+
+### DataManagment service won't start
+The Flask service needs its own dependencies:
+```bash
+pip install flask flask-cors python-docx
+python DataManagment/main.py
+```
+
+## Quick Reference
+
+### Essential Files
+- [BE/main.py](BE/main.py) - Main FastAPI application entry point
+- [BE/core/config.py](BE/core/config.py) - Database and CORS configuration
+- [Chatbot/config/rag_config.py](Chatbot/config/rag_config.py) - RAG system configuration
+- [Chatbot/controllers/RAGController.py](Chatbot/controllers/RAGController.py) - All RAG logic
+- [requirements.txt](requirements.txt) - Python dependencies
+- [.env.example](.env.example) - Environment variable template
+
+### Key Ports
+- `8000` - Backend + RAG (FastAPI)
+- `5000` - DataManagment (Flask)
+- `8080` - Frontend (Python HTTP server)
+- `5500` - Frontend (VSCode Live Server)
+
+### Database File
+- `./chatbot.db` - SQLite database (auto-created, git-ignored)
