@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: chatbot_qdrant
+    ports:
+      - "6333:6333"  # HTTP API
+      - "6334:6334"  # gRPC API
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+      - QDRANT__SERVICE__HTTP_PORT=6333
+    restart: unless-stopped
+    networks:
+      - chatbot_network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:6333/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # FastAPI Backend + RAG Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chatbot_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./BE:/app/BE
+      - ./Chatbot:/app/Chatbot
+      - ./FE:/app/FE
+      - ./data:/app/data
+      - ./chatbot.db:/app/chatbot.db
+    environment:
+      # OpenAI API
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+      # Qdrant Configuration
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - QDRANT_API_KEY=${QDRANT_API_KEY:-}
+      - QDRANT_COLLECTION=ptit_documents
+
+      # Database (SQLite by default)
+      - USE_SQLITE=true
+
+      # Python settings
+      - PYTHONUNBUFFERED=1
+      - PYTHONIOENCODING=utf-8
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - chatbot_network
+    command: uvicorn BE.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Optional: Data Management Service (Flask)
+  # Uncomment if you need file upload and web crawling features
+  # datamanagement:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.datamanagement
+  #   container_name: chatbot_datamanagement
+  #   ports:
+  #     - "5000:5000"
+  #   volumes:
+  #     - ./DataManagment:/app/DataManagment
+  #     - ./data:/app/data
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+  #     - FLASK_APP=DataManagment/main.py
+  #   restart: unless-stopped
+  #   networks:
+  #     - chatbot_network
+  #   command: python DataManagment/main.py
+
+networks:
+  chatbot_network:
+    driver: bridge
+
+volumes:
+  qdrant_storage:
+    driver: local

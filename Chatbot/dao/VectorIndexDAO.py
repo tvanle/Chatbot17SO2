@@ -1,30 +1,79 @@
 """
 VectorIndexDAO - Data Access Object for Vector Index operations
-Handles vector similarity search using in-memory or external vector stores
+Powered by Qdrant Vector Database for fast similarity search
+
+Replaced old database-backed storage with Qdrant for better performance
 """
 from typing import List, Tuple, Optional, Dict
 import numpy as np
-from sqlalchemy.orm import Session
-from Chatbot.models.Embedding import Embedding
-from Chatbot.models.Chunk import Chunk
-import pickle
+import uuid
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class VectorIndexDAO:
     """
-    DAO for vector index operations
-    Supports both:
-    1. Database-backed search (PostgreSQL with pgvector or SQLite with manual search)
-    2. In-memory FAISS index (optional, faster for large datasets)
+    DAO for vector index operations using Qdrant
+    Replaces old database-backed vector storage with dedicated vector DB
 
-    This minimal implementation uses database + numpy for simplicity
+    Provides same interface as before, but with Qdrant backend for better performance
     """
 
-    def __init__(self, db: Session, use_faiss: bool = False):
-        self.db = db
-        self.use_faiss = use_faiss
-        self.faiss_index = None  # Optional FAISS index
-        self.id_map = {}  # Maps FAISS index position to chunk_id
+    def __init__(self, db=None, host: str = None, port: int = None, collection_name: str = None):
+        """
+        Initialize VectorIndexDAO with Qdrant backend
+
+        Args:
+            db: SQLAlchemy session (ignored, kept for backward compatibility)
+            host: Qdrant server host (default: from config)
+            port: Qdrant server port (default: from config)
+            collection_name: Collection name (default: from config)
+        """
+        # Load from config if not provided
+        from Chatbot.config.rag_config import get_rag_config
+        config = get_rag_config()
+
+        self.host = host or config.qdrant_host
+        self.port = port or config.qdrant_port
+        self.collection_name = collection_name or config.qdrant_collection_name
+        self._client = None
+        self._connect()
+
+    def _connect(self):
+        """Connect to Qdrant server"""
+        try:
+            from qdrant_client import QdrantClient
+            from qdrant_client.models import Distance, VectorParams
+
+            self._client = QdrantClient(
+                host=self.host,
+                port=self.port,
+                timeout=30
+            )
+
+            # Create collection if not exists
+            collections = self._client.get_collections().collections
+            collection_names = [c.name for c in collections]
+
+            if self.collection_name not in collection_names:
+                self._client.create_collection(
+                    collection_name=self.collection_name,
+                    vectors_config=VectorParams(
+                        size=384,  # Default dimension for all-MiniLM-L6-v2
+                        distance=Distance.COSINE
+                    )
+                )
+                logger.info(f"Created Qdrant collection: {self.collection_name}")
+            else:
+                logger.info(f"Using existing Qdrant collection: {self.collection_name}")
+
+        except ImportError:
+            logger.error("qdrant-client not installed. Install with: pip install qdrant-client")
+            self._client = None
+        except Exception as e:
+            logger.error(f"Failed to connect to Qdrant at {self.host}:{self.port} - {e}")
+            self._client = None
 
     def query(
         self,
@@ -37,145 +86,101 @@ class VectorIndexDAO:
         Query vector index for similar chunks
 
         Args:
-            namespace: Namespace/collection identifier (for multi-tenancy)
+            namespace: Namespace/collection identifier
             query_vector: Query embedding vector
             top_k: Number of results to return
-            filters: Optional filters (e.g., document_id, date range)
+            filters: Optional filters (not implemented yet)
 
         Returns:
             List of (chunk_id, similarity_score) tuples, sorted by score descending
         """
-        if self.use_faiss and self.faiss_index is not None:
-            return self._query_faiss(query_vector, top_k)
-        else:
-            return self._query_database(namespace, query_vector, top_k, filters)
-
-    def _query_database(
-        self,
-        namespace: str,
-        query_vector: np.ndarray,
-        top_k: int,
-        filters: Optional[Dict] = None
-    ) -> List[Tuple[str, float]]:
-        """
-        Query using database (slower but simpler)
-        Computes cosine similarity with all embeddings
-        """
-        # Fetch all embeddings (in production, you'd filter by namespace)
-        embeddings = self.db.query(Embedding).all()
-
-        if not embeddings:
+        if self._client is None:
+            logger.warning("Qdrant client not available, returning empty results")
             return []
 
-        # Compute cosine similarities
-        similarities = []
-        for emb in embeddings:
-            vec = emb.get_vector()
-            if vec is not None and len(vec) == len(query_vector):
-                # Cosine similarity: dot(A, B) / (||A|| * ||B||)
-                similarity = np.dot(query_vector, vec) / (
-                    np.linalg.norm(query_vector) * np.linalg.norm(vec)
-                )
-                similarities.append((emb.chunk_id, float(similarity)))
-
-        # Sort by similarity descending
-        similarities.sort(key=lambda x: x[1], reverse=True)
-
-        # Return top-k
-        return similarities[:top_k]
-
-    def _query_faiss(self, query_vector: np.ndarray, top_k: int) -> List[Tuple[str, float]]:
-        """
-        Query using FAISS index (faster for large datasets)
-        Requires FAISS library installed
-        """
         try:
-            import faiss
-            # Search in FAISS index
-            query_vector = query_vector.reshape(1, -1).astype('float32')
-            distances, indices = self.faiss_index.search(query_vector, top_k)
+            from qdrant_client.models import Filter, FieldCondition, MatchValue
 
-            # Map indices back to chunk IDs
+            # Build filter for namespace
+            query_filter = None
+            if namespace:
+                query_filter = Filter(
+                    must=[
+                        FieldCondition(
+                            key="namespace",
+                            match=MatchValue(value=namespace)
+                        )
+                    ]
+                )
+
+            # Search in Qdrant
+            search_results = self._client.search(
+                collection_name=self.collection_name,
+                query_vector=query_vector.tolist() if isinstance(query_vector, np.ndarray) else query_vector,
+                limit=top_k,
+                query_filter=query_filter,
+                with_payload=True,
+                with_vectors=False
+            )
+
+            # Format results as (chunk_id, score)
             results = []
-            for idx, dist in zip(indices[0], distances[0]):
-                if idx != -1:  # Valid result
-                    chunk_id = self.id_map.get(idx)
-                    if chunk_id:
-                        # Convert distance to similarity (assuming L2 distance)
-                        similarity = 1 / (1 + dist)
-                        results.append((chunk_id, float(similarity)))
+            for result in search_results:
+                chunk_id = result.payload.get("chunk_id")
+                if chunk_id:
+                    results.append((chunk_id, float(result.score)))
 
             return results
-        except ImportError:
-            # Fallback to database if FAISS not available
-            return self._query_database("default", query_vector, top_k, None)
+
+        except Exception as e:
+            logger.error(f"Qdrant query failed: {e}")
+            return []
 
     def upsert(self, namespace: str, pairs: List[Tuple[str, np.ndarray]]) -> None:
         """
-        Insert or update embeddings in vector index
+        Insert or update embeddings in Qdrant
 
         Args:
             namespace: Namespace/collection identifier
             pairs: List of (chunk_id, vector) tuples
         """
-        for chunk_id, vector in pairs:
-            # Check if embedding exists
-            existing = self.db.query(Embedding).filter(Embedding.chunk_id == chunk_id).first()
+        if self._client is None:
+            logger.warning("Qdrant client not available, skipping upsert")
+            return
 
-            if existing:
-                # Update existing embedding
-                existing.set_vector(vector)
-            else:
-                # Create new embedding
-                embedding = Embedding(
-                    chunk_id=chunk_id,
-                    model_name="sentence-transformers/all-MiniLM-L6-v2",  # Default model
-                    dim=len(vector)
-                )
-                embedding.set_vector(vector)
-                self.db.add(embedding)
-
-        self.db.commit()
-
-        # Optionally rebuild FAISS index
-        if self.use_faiss:
-            self._rebuild_faiss_index()
-
-    def _rebuild_faiss_index(self):
-        """
-        Rebuild FAISS index from database embeddings
-        Call this after bulk inserts/updates
-        """
         try:
-            import faiss
+            from qdrant_client.models import PointStruct
 
-            # Fetch all embeddings
-            embeddings = self.db.query(Embedding).all()
-            if not embeddings:
-                return
+            # Prepare points for batch upsert
+            points = []
+            for chunk_id, vector in pairs:
+                point_id = str(uuid.uuid4())  # Generate unique point ID
 
-            # Get dimension
-            dim = embeddings[0].dim
+                # Convert numpy array to list
+                if isinstance(vector, np.ndarray):
+                    vector = vector.tolist()
 
-            # Create FAISS index (L2 distance)
-            self.faiss_index = faiss.IndexFlatL2(dim)
+                point = PointStruct(
+                    id=point_id,
+                    vector=vector,
+                    payload={
+                        "chunk_id": chunk_id,
+                        "namespace": namespace
+                    }
+                )
+                points.append(point)
 
-            # Add vectors
-            vectors = []
-            self.id_map = {}
-            for idx, emb in enumerate(embeddings):
-                vec = emb.get_vector()
-                if vec is not None:
-                    vectors.append(vec)
-                    self.id_map[idx] = emb.chunk_id
+            # Batch upsert to Qdrant
+            if points:
+                self._client.upsert(
+                    collection_name=self.collection_name,
+                    points=points,
+                    wait=True
+                )
+                logger.info(f"Upserted {len(points)} vectors to Qdrant namespace '{namespace}'")
 
-            if vectors:
-                vectors_array = np.array(vectors).astype('float32')
-                self.faiss_index.add(vectors_array)
-
-        except ImportError:
-            # FAISS not available, skip
-            pass
+        except Exception as e:
+            logger.error(f"Qdrant upsert failed: {e}")
 
     def delete_by_chunk_id(self, chunk_id: str) -> bool:
         """
@@ -185,19 +190,100 @@ class VectorIndexDAO:
             chunk_id: Chunk UUID
 
         Returns:
-            True if deleted, False if not found
+            True if deleted, False otherwise
         """
-        embedding = self.db.query(Embedding).filter(Embedding.chunk_id == chunk_id).first()
-        if embedding:
-            self.db.delete(embedding)
-            self.db.commit()
+        if self._client is None:
+            return False
+
+        try:
+            from qdrant_client.models import Filter, FieldCondition, MatchValue
+
+            # Delete by filtering on chunk_id payload
+            self._client.delete(
+                collection_name=self.collection_name,
+                points_selector=Filter(
+                    must=[
+                        FieldCondition(
+                            key="chunk_id",
+                            match=MatchValue(value=chunk_id)
+                        )
+                    ]
+                ),
+                wait=True
+            )
+            logger.info(f"Deleted chunk {chunk_id} from Qdrant")
             return True
-        return False
+
+        except Exception as e:
+            logger.error(f"Qdrant delete failed: {e}")
+            return False
 
     def delete_by_namespace(self, namespace: str):
         """
         Delete all embeddings in a namespace
-        (Implementation depends on how namespace is stored - e.g., via document metadata)
+
+        Args:
+            namespace: Namespace identifier
         """
-        # This is a placeholder - in production, you'd filter by namespace
-        pass
+        if self._client is None:
+            return
+
+        try:
+            from qdrant_client.models import Filter, FieldCondition, MatchValue
+
+            # Delete all points with matching namespace
+            self._client.delete(
+                collection_name=self.collection_name,
+                points_selector=Filter(
+                    must=[
+                        FieldCondition(
+                            key="namespace",
+                            match=MatchValue(value=namespace)
+                        )
+                    ]
+                ),
+                wait=True
+            )
+            logger.info(f"Deleted all vectors in namespace '{namespace}'")
+
+        except Exception as e:
+            logger.error(f"Qdrant delete by namespace failed: {e}")
+
+    def get_stats(self) -> Dict:
+        """
+        Get Qdrant collection statistics
+
+        Returns:
+            Dictionary with collection stats
+        """
+        if self._client is None:
+            return {"status": "disconnected"}
+
+        try:
+            collection_info = self._client.get_collection(self.collection_name)
+            return {
+                "status": "connected",
+                "points_count": collection_info.points_count,
+                "vectors_count": collection_info.vectors_count,
+                "collection": self.collection_name,
+                "host": f"{self.host}:{self.port}"
+            }
+        except Exception as e:
+            logger.error(f"Failed to get Qdrant stats: {e}")
+            return {"status": "error", "message": str(e)}
+
+    def health_check(self) -> bool:
+        """
+        Check if Qdrant is healthy
+
+        Returns:
+            True if healthy, False otherwise
+        """
+        if self._client is None:
+            return False
+
+        try:
+            self._client.get_collections()
+            return True
+        except:
+            return False

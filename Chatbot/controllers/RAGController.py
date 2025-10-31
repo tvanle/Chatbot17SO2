@@ -275,11 +275,37 @@ async def health_check():
     Health check endpoint for RAG service
 
     Returns:
-        Service status
+        Service status including vector backend information
     """
     try:
+        from Chatbot.config.rag_config import get_rag_config
+        config = get_rag_config()
+
         vectorizer = get_vectorizer_service()
         generator = get_generator_service()
+
+        # Check Qdrant backend (VectorIndexDAO now uses Qdrant)
+        vector_backend_info = {
+            "backend": "qdrant",
+            "status": "unknown"
+        }
+
+        try:
+            from Chatbot.dao.VectorIndexDAO import VectorIndexDAO
+            vidx = VectorIndexDAO()
+            if vidx.health_check():
+                stats = vidx.get_stats()
+                vector_backend_info.update({
+                    "status": stats.get("status", "unknown"),
+                    "host": f"{vidx.host}:{vidx.port}",
+                    "collection": vidx.collection_name,
+                    "points_count": stats.get("points_count", 0)
+                })
+            else:
+                vector_backend_info["status"] = "disconnected"
+        except Exception as e:
+            vector_backend_info["status"] = "error"
+            vector_backend_info["error"] = str(e)
 
         return {
             "status": "healthy",
@@ -293,7 +319,8 @@ async def health_check():
                 "model": generator.client.model_name if generator.client else "mock",
                 "backend": generator.client.backend if generator.client else "mock",
                 "loaded": generator.client is not None
-            }
+            },
+            "vector_store": vector_backend_info
         }
     except Exception as e:
         return {

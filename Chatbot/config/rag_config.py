@@ -37,20 +37,32 @@ class RAGConfig(BaseModel):
     # Local: Path to local model or HuggingFace model ID
 
     # ===== Vector Store Settings =====
-    vector_store_type: str = "database"  # "database", "faiss", "chromadb", "pinecone"
-    use_faiss: bool = False  # Enable FAISS for faster search
+    vector_store_type: str = "qdrant"  # "database", "qdrant", "faiss", "chromadb", "pinecone"
+    use_faiss: bool = False  # Enable FAISS for faster search (legacy)
     vector_store_path: Optional[str] = "./data/vector_store"  # Path for file-based stores
+
+    # Qdrant Configuration
+    qdrant_host: str = os.getenv("QDRANT_HOST", "localhost")
+    qdrant_port: int = int(os.getenv("QDRANT_PORT", "6333"))
+    qdrant_api_key: Optional[str] = os.getenv("QDRANT_API_KEY")
+    qdrant_collection_name: str = os.getenv("QDRANT_COLLECTION", "ptit_documents")
+    qdrant_timeout: int = 30  # Connection timeout in seconds
 
     # ===== Chunking Settings =====
     chunk_size: int = 512  # Characters per chunk
     chunk_overlap: int = 50  # Overlapping characters
     chunk_separator: str = "\n\n"  # Primary separator (paragraphs)
+    chunk_strategy: str = "fixed"  # "fixed", "semantic", "sentence"
 
     # ===== Retrieval Settings =====
     default_top_k: int = 10  # Number of chunks to retrieve (increased for better coverage)
     default_token_budget: int = 2000  # Max tokens for context
     similarity_threshold: float = 0.3  # Minimum similarity score (0-1, lowered for broader matching)
     enable_reranking: bool = False  # Enable cross-encoder re-ranking
+
+    # ===== Caching Settings =====
+    enable_cache: bool = True  # Enable Redis caching
+    cache_ttl: int = 3600  # Cache TTL in seconds (1 hour)
 
     # ===== Database Settings =====
     # Inherits from BE.core.config, but can override here
