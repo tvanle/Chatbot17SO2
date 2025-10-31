@@ -15,8 +15,10 @@ class Settings(BaseModel):
 
     CORS_ORIGINS: list[str] = [
         "http://127.0.0.1:5500", "http://localhost:5500",  # VSCode Live Server
+        "http://127.0.0.1:5501", "http://localhost:5501",  # VSCode Live Server (alternate)
         "http://127.0.0.1:3000", "http://localhost:3000",
         "http://127.0.0.1:8080", "http://localhost:8080",  # Python HTTP Server
+        "http://127.0.0.1:8081", "http://localhost:8081",  # Python HTTP Server (alternate)
         "null",  # Cho file:// protocol
     ]
 
