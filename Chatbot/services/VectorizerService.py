@@ -1,8 +1,9 @@
 """
 VectorizerService - Handles text-to-vector embedding
 """
-from typing import List
+from typing import List, Optional
 import numpy as np
+from Chatbot.config.rag_config import get_rag_config
 
 
 class VectorizerService:
@@ -11,14 +12,16 @@ class VectorizerService:
     Uses sentence-transformers for creating dense vector representations
     """
 
-    def __init__(self, embed_model: str = "sentence-transformers/all-MiniLM-L6-v2"):
+    def __init__(self, embed_model: Optional[str] = None):
         """
         Initialize vectorizer with embedding model
 
         Args:
-            embed_model: Model name for sentence-transformers
+            embed_model: Model name for sentence-transformers (optional, uses config if None)
         """
-        self.embed_model = embed_model
+        config = get_rag_config()
+        self.embed_model = embed_model or config.embedding_model
+        self.embedding_dimension = config.embedding_dimension
         self.model = None
         self._load_model()
 
@@ -47,14 +50,14 @@ class VectorizerService:
         """
         if self.model is None:
             # Fallback: return random vector if model not loaded
-            return np.random.rand(384).astype('float32')  # MiniLM dimension
+            return np.random.rand(self.embedding_dimension).astype('float32')
 
         try:
             embedding = self.model.encode(text, convert_to_numpy=True)
             return embedding.astype('float32')
         except Exception as e:
             print(f"Error generating embedding: {e}")
-            return np.random.rand(384).astype('float32')
+            return np.random.rand(self.embedding_dimension).astype('float32')
 
     def embed_batch(self, texts: List[str]) -> List[np.ndarray]:
         """
@@ -71,14 +74,14 @@ class VectorizerService:
 
         if self.model is None:
             # Fallback: return random vectors
-            return [np.random.rand(384).astype('float32') for _ in texts]
+            return [np.random.rand(self.embedding_dimension).astype('float32') for _ in texts]
 
         try:
             embeddings = self.model.encode(texts, convert_to_numpy=True, show_progress_bar=False)
             return [emb.astype('float32') for emb in embeddings]
         except Exception as e:
             print(f"Error generating batch embeddings: {e}")
-            return [np.random.rand(384).astype('float32') for _ in texts]
+            return [np.random.rand(self.embedding_dimension).astype('float32') for _ in texts]
 
     def get_dimension(self) -> int:
         """
@@ -88,9 +91,9 @@ class VectorizerService:
             Dimension of embedding vectors
         """
         if self.model is None:
-            return 384  # Default MiniLM dimension
+            return self.embedding_dimension
 
         try:
             return self.model.get_sentence_embedding_dimension()
         except:
-            return 384
+            return self.embedding_dimension

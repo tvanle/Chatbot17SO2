@@ -1,8 +1,9 @@
 """
 GeneratorService - Generates answers using LLM with retrieved context
 """
-from typing import List
+from typing import List, Optional
 from Chatbot.services.ModelClient import ModelClient
+from Chatbot.config.rag_config import get_rag_config
 
 
 class GeneratorService:
@@ -13,20 +14,24 @@ class GeneratorService:
 
     def __init__(
         self,
-        model_name: str = "gpt-3.5-turbo",
-        max_tokens: int = 512,
-        backend: str = "openai"
+        model_name: Optional[str] = None,
+        max_tokens: Optional[int] = None,
+        backend: Optional[str] = None
     ):
         """
         Initialize generator service
 
         Args:
-            model_name: LLM model identifier
-            max_tokens: Maximum tokens for generation
-            backend: LLM backend ("openai", "anthropic", "local")
+            model_name: LLM model identifier (optional, uses config if None)
+            max_tokens: Maximum tokens for generation (optional, uses config if None)
+            backend: LLM backend (optional, uses config if None)
         """
-        self.client = ModelClient(model_name=model_name, backend=backend)
-        self.max_tokens = max_tokens
+        config = get_rag_config()
+        self.client = ModelClient(
+            model_name=model_name or config.llm_model,
+            backend=backend or config.llm_backend
+        )
+        self.max_tokens = max_tokens or config.llm_max_tokens
 
     def generate(self, question: str, contexts: List[str], language: str = "vi") -> str:
         """
@@ -44,7 +49,12 @@ class GeneratorService:
         prompt = self._build_prompt(question, contexts, language)
 
         # Generate answer using LLM
-        answer = self.client.complete(prompt, max_tokens=self.max_tokens, temperature=0.7)
+        config = get_rag_config()
+        answer = self.client.complete(
+            prompt,
+            max_tokens=self.max_tokens,
+            temperature=config.llm_temperature
+        )
 
         return answer
 

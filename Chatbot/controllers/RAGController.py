@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from BE.db.session import get_db
+from Chatbot.config.rag_config import get_rag_config
 from Chatbot.entities.AnswerRequest import AnswerRequest
 from Chatbot.entities.AnswerResult import AnswerResult
 from Chatbot.entities.IngestRequest import IngestRequest
@@ -40,19 +41,19 @@ def get_vectorizer_service():
     return _vectorizer_service
 
 
-def get_generator_service(model_name: str = "gpt-3.5-turbo"):
+def get_generator_service(model_name: str = None):
     """
     Get or create GeneratorService for the specified model
+    Uses config defaults if model_name is None
     API key được load tự động từ .env trong ModelClient
     """
     global _generator_service
+    config = get_rag_config()
+    model_to_use = model_name or config.llm_model
+
     # Recreate if model changed
-    if _generator_service is None or _generator_service.client.model_name != model_name:
-        _generator_service = GeneratorService(
-            model_name=model_name,
-            max_tokens=1000,
-            backend="openai"  # API key từ OPENAI_API_KEY trong .env
-        )
+    if _generator_service is None or _generator_service.client.model_name != model_to_use:
+        _generator_service = GeneratorService(model_name=model_to_use)
     return _generator_service
 
 
@@ -148,10 +149,11 @@ async def ingest(request: IngestRequest, db: Session = Depends(get_db)):
         doc_id = doc_dao.upsert(document)
 
         # Step 2-3: Split content into chunks (Sequence diagram line 15-16)
+        config = get_rag_config()
         chunk_texts = chunk_text(
             request.content,
-            chunk_size=512,
-            chunk_overlap=50
+            chunk_size=config.chunk_size,
+            chunk_overlap=config.chunk_overlap
         )
 
         # Step 4-6: Create and insert chunks (Sequence diagram line 18-22)

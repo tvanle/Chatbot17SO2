@@ -47,9 +47,9 @@ class RAGConfig(BaseModel):
     chunk_separator: str = "\n\n"  # Primary separator (paragraphs)
 
     # ===== Retrieval Settings =====
-    default_top_k: int = 5  # Number of chunks to retrieve
+    default_top_k: int = 10  # Number of chunks to retrieve (increased for better coverage)
     default_token_budget: int = 2000  # Max tokens for context
-    similarity_threshold: float = 0.5  # Minimum similarity score (0-1)
+    similarity_threshold: float = 0.3  # Minimum similarity score (0-1, lowered for broader matching)
     enable_reranking: bool = False  # Enable cross-encoder re-ranking
 
     # ===== Database Settings =====
