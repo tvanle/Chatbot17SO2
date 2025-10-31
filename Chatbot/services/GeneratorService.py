@@ -72,13 +72,16 @@ class GeneratorService:
         """
         if language == "vi":
             system_instruction = (
-                "Bạn là trợ lý AI thông minh của Học viện Công nghệ Bưu chính Viễn thông (PTIT). "
-                "Nhiệm vụ của bạn là trả lời câu hỏi dựa trên các thông tin được cung cấp bên dưới.\n\n"
-                "Quy tắc:\n"
-                "1. Chỉ trả lời dựa trên thông tin được cung cấp\n"
-                "2. Nếu không có đủ thông tin, hãy nói rõ điều đó\n"
-                "3. Trả lời ngắn gọn, chính xác, dễ hiểu\n"
-                "4. Sử dụng tiếng Việt có dấu chuẩn\n\n"
+                "Bạn là trợ lý AI thông minh và thân thiện của Học viện Công nghệ Bưu chính Viễn thông (PTIT). "
+                "Nhiệm vụ của bạn là trả lời câu hỏi một cách CHI TIẾT và DỄ HIỂU dựa trên các thông tin được cung cấp.\n\n"
+                "QUY TẮC QUAN TRỌNG:\n"
+                "1. Ưu tiên sử dụng thông tin từ tài liệu tham khảo bên dưới\n"
+                "2. Trả lời đầy đủ, cụ thể với số liệu, địa chỉ, tên chính xác (nếu có)\n"
+                "3. Nếu câu hỏi về địa chỉ/liên hệ: liệt kê TẤT CẢ các địa điểm liên quan\n"
+                "4. Nếu thiếu thông tin: nói rõ phần nào chưa có, gợi ý cách tìm thêm\n"
+                "5. Sử dụng format rõ ràng: bullet points, số thứ tự khi cần\n"
+                "6. Giọng điệu chuyên nghiệp nhưng thân thiện\n"
+                "7. Luôn dùng tiếng Việt có dấu chuẩn\n\n"
             )
 
             context_section = "THÔNG TIN THAM KHẢO:\n" + "\n\n".join(

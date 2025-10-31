@@ -26,7 +26,7 @@ class RAGConfig(BaseModel):
     # ===== LLM Settings =====
     llm_backend: str = "openai"  # "openai", "anthropic", "local"
     llm_model: str = "gpt-3.5-turbo"
-    llm_max_tokens: int = 512
+    llm_max_tokens: int = 800  # Increased for more detailed answers
     llm_temperature: float = 0.7
     openai_api_key: Optional[str] = os.getenv("OPENAI_API_KEY")
     anthropic_api_key: Optional[str] = os.getenv("ANTHROPIC_API_KEY")
