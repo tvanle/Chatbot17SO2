@@ -60,9 +60,12 @@ class RAGConfig(BaseModel):
     similarity_threshold: float = 0.3  # Minimum similarity score (0-1, lowered for broader matching)
     enable_reranking: bool = False  # Enable cross-encoder re-ranking
 
-    # ===== Caching Settings =====
-    enable_cache: bool = True  # Enable Redis caching
+    # ===== Caching Settings (Redis) =====
+    enable_cache: bool = os.getenv("ENABLE_CACHE", "false").lower() == "true"  # Enable Redis caching
     cache_ttl: int = 3600  # Cache TTL in seconds (1 hour)
+    redis_host: str = os.getenv("REDIS_HOST", "localhost")
+    redis_port: int = int(os.getenv("REDIS_PORT", "6379"))
+    redis_db: int = int(os.getenv("REDIS_DB", "0"))
 
     # ===== Database Settings =====
     # Inherits from BE.core.config, but can override here

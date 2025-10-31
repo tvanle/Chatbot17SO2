@@ -1,29 +1,59 @@
 """
 VectorizerService - Handles text-to-vector embedding
+Enhanced with Redis caching support
 """
 from typing import List, Optional
 import numpy as np
+import logging
 from Chatbot.config.rag_config import get_rag_config
+
+logger = logging.getLogger(__name__)
 
 
 class VectorizerService:
     """
     Service for generating embeddings from text
     Uses sentence-transformers for creating dense vector representations
+    With optional Redis caching to reduce API calls and improve performance
     """
 
-    def __init__(self, embed_model: Optional[str] = None):
+    def __init__(self, embed_model: Optional[str] = None, enable_cache: bool = None):
         """
         Initialize vectorizer with embedding model
 
         Args:
             embed_model: Model name for sentence-transformers (optional, uses config if None)
+            enable_cache: Enable Redis caching (optional, uses config if None)
         """
         config = get_rag_config()
         self.embed_model = embed_model or config.embedding_model
         self.embedding_dimension = config.embedding_dimension
         self.model = None
+        self._cache = None
+
+        # Initialize cache if enabled
+        self.enable_cache = enable_cache if enable_cache is not None else config.enable_cache
+        if self.enable_cache:
+            self._init_cache()
+
         self._load_model()
+
+    def _init_cache(self):
+        """Initialize Redis cache"""
+        try:
+            from Chatbot.infrastructure.cache import RedisCache
+            self._cache = RedisCache()
+            if self._cache.is_available():
+                logger.info("✓ Redis cache enabled for embeddings")
+            else:
+                logger.warning("Redis cache initialization failed, proceeding without cache")
+                self._cache = None
+        except ImportError:
+            logger.warning("redis package not installed, caching disabled")
+            self._cache = None
+        except Exception as e:
+            logger.warning(f"Failed to initialize cache: {e}")
+            self._cache = None
 
     def _load_model(self):
         """Load the embedding model (lazy loading)"""
@@ -40,7 +70,7 @@ class VectorizerService:
 
     def embed(self, text: str) -> np.ndarray:
         """
-        Generate embedding for a single text
+        Generate embedding for a single text with optional caching
 
         Args:
             text: Input text string
@@ -48,15 +78,38 @@ class VectorizerService:
         Returns:
             Embedding vector as numpy array
         """
+        # Try cache first
+        if self._cache and self._cache.is_available():
+            cached_embedding = self._cache.get_cached_embedding(
+                text=text,
+                provider="huggingface",
+                model=self.embed_model
+            )
+            if cached_embedding is not None:
+                return np.array(cached_embedding, dtype='float32')
+
+        # Model not loaded fallback
         if self.model is None:
-            # Fallback: return random vector if model not loaded
+            logger.warning("Embedding model not loaded, returning random vector")
             return np.random.rand(self.embedding_dimension).astype('float32')
 
         try:
+            # Generate embedding
             embedding = self.model.encode(text, convert_to_numpy=True)
-            return embedding.astype('float32')
+            embedding = embedding.astype('float32')
+
+            # Cache the result
+            if self._cache and self._cache.is_available():
+                self._cache.cache_embedding(
+                    text=text,
+                    embedding=embedding.tolist(),
+                    provider="huggingface",
+                    model=self.embed_model
+                )
+
+            return embedding
         except Exception as e:
-            print(f"Error generating embedding: {e}")
+            logger.error(f"Error generating embedding: {e}")
             return np.random.rand(self.embedding_dimension).astype('float32')
 
     def embed_batch(self, texts: List[str]) -> List[np.ndarray]:

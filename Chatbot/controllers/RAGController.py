@@ -309,20 +309,40 @@ async def health_check():
             vector_backend_info["status"] = "error"
             vector_backend_info["error"] = str(e)
 
+        # Check Redis cache
+        cache_info = {
+            "enabled": config.enable_cache,
+            "status": "disabled"
+        }
+        if config.enable_cache:
+            try:
+                from Chatbot.infrastructure.cache import RedisCache
+                cache = RedisCache()
+                if cache.is_available():
+                    stats = cache.get_stats()
+                    cache_info.update(stats)
+                else:
+                    cache_info["status"] = "disconnected"
+            except Exception as e:
+                cache_info["status"] = "error"
+                cache_info["error"] = str(e)
+
         return {
             "status": "healthy",
             "service": "RAG API",
             "vectorizer": {
                 "model": vectorizer.embed_model,
                 "dimension": vectorizer.get_dimension(),
-                "loaded": vectorizer.model is not None
+                "loaded": vectorizer.model is not None,
+                "cache_enabled": vectorizer.enable_cache
             },
             "generator": {
                 "model": generator.client.model_name if generator.client else "mock",
                 "backend": generator.client.backend if generator.client else "mock",
                 "loaded": generator.client is not None
             },
-            "vector_store": vector_backend_info
+            "vector_store": vector_backend_info,
+            "cache": cache_info
         }
     except Exception as e:
         return {
