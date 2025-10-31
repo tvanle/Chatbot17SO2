@@ -142,10 +142,37 @@ export class UIManager {
         }
     }
 
-    loadSavedModel() {
-        const savedModel = localStorage.getItem('selectedModel');
-        if (savedModel && DOM.currentModelSpan) {
-            DOM.currentModelSpan.textContent = savedModel;
+    async loadSavedModel() {
+        try {
+            // First, try to load saved model from localStorage
+            const savedModel = localStorage.getItem('selectedModel');
+
+            // Fetch available models from server
+            const data = await apiService.getModels();
+            const models = data.models || [];
+
+            if (models.length === 0) {
+                DOM.currentModelSpan.textContent = 'No models available';
+                return;
+            }
+
+            // Check if saved model is still available
+            let modelToUse = null;
+            if (savedModel) {
+                modelToUse = models.find(m => m.name === savedModel);
+            }
+
+            // If no saved model or saved model not available, use first available model
+            if (!modelToUse) {
+                modelToUse = models[0];
+                localStorage.setItem('selectedModel', modelToUse.name);
+            }
+
+            DOM.currentModelSpan.textContent = modelToUse.name;
+
+        } catch (err) {
+            console.error('Error loading model:', err);
+            DOM.currentModelSpan.textContent = 'Error loading models';
         }
     }
 
@@ -300,7 +327,14 @@ export class UIManager {
         DOM.messages.innerHTML = `
             <div class="message assistant-message">
                 <div class="message-content">
-                    <p>Hi! How can I help you today?</p>
+                    <p>Xin chào! Tôi là trợ lý AI của PTIT. Tôi có thể giúp bạn tìm hiểu về:</p>
+                    <ul>
+                        <li>📚 Quy chế đào tạo và học vụ</li>
+                        <li>🎓 Thông tin tuyển sinh</li>
+                        <li>📍 Địa chỉ và liên hệ các phòng ban</li>
+                        <li>🌐 Các hệ thống trực tuyến của PTIT</li>
+                    </ul>
+                    <p>Bạn muốn hỏi gì?</p>
                 </div>
             </div>
         `;
