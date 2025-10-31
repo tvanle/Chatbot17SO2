@@ -11,6 +11,7 @@ class AnswerRequest(BaseModel):
     question: str = Field(..., description="User's question")
     top_k: int = Field(default=5, ge=1, le=20, description="Number of chunks to retrieve")
     token_budget: int = Field(default=2000, ge=100, le=8000, description="Max tokens for context")
+    model: Optional[str] = Field(default="gpt-3.5-turbo", description="LLM model to use for generation")
 
     class Config:
         json_schema_extra = {

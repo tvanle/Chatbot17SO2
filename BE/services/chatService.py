@@ -103,7 +103,8 @@ class ChatService:
                     "namespace_id": "ptit_docs",
                     "question": content,
                     "top_k": 5,
-                    "token_budget": 2000
+                    "token_budget": 2000,
+                    "model": llm_model  # Pass model from DB
                 },
                 timeout=30  # 30 seconds timeout
             )

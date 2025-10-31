@@ -4,6 +4,7 @@ from BE.core.config import settings
 from BE.db.session import Base, engine
 from BE.controllers import auth as auth_controller
 from BE.controllers import chat as chat_controller
+from Chatbot.controllers import RAGController
 import logging
 from dotenv import load_dotenv
 
@@ -22,6 +23,7 @@ app.add_middleware(
 
 app.include_router(auth_controller.router)
 app.include_router(chat_controller.router)
+app.include_router(RAGController.router)
 
 # Tạo bảng khi ứng dụng khởi động; ghi log chi tiết và đánh dấu trạng thái DB
 @app.on_event("startup")

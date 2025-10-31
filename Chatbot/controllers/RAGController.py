@@ -42,11 +42,12 @@ def get_vectorizer_service():
 
 def get_generator_service(model_name: str = "gpt-3.5-turbo"):
     """
-    Get singleton GeneratorService
+    Get or create GeneratorService for the specified model
     API key được load tự động từ .env trong ModelClient
     """
     global _generator_service
-    if _generator_service is None:
+    # Recreate if model changed
+    if _generator_service is None or _generator_service.client.model_name != model_name:
         _generator_service = GeneratorService(
             model_name=model_name,
             max_tokens=1000,
@@ -98,8 +99,8 @@ async def answer(request: AnswerRequest, db: Session = Depends(get_db)):
         context_texts = [hit.chunk["text"] for hit in hits if hit.chunk]
         contexts = fit_within_budget(context_texts, token_budget=request.token_budget)
 
-        # ===== STEP 4: Generate answer with LLM (OpenAI) =====
-        generator = get_generator_service("gpt-3.5-turbo")
+        # ===== STEP 4: Generate answer with LLM (dynamic model) =====
+        generator = get_generator_service(request.model)
         answer_text = generator.generate(
             question=request.question,
             contexts=contexts,
