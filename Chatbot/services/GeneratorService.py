@@ -148,5 +148,5 @@ class GeneratorService:
             )
 
         base_prompt = self._build_prompt(question, contexts, language)
-        return base_prompt.replace("TRẢLỜI:", citation_instruction + "TRẢ LỜI:") if language == "vi" else \
+        return base_prompt.replace("TRẢ LỜI:", citation_instruction + "TRẢ LỜI:") if language == "vi" else \
                base_prompt.replace("ANSWER:", citation_instruction + "ANSWER:")
