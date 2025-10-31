@@ -90,6 +90,7 @@ class ChatService:
         # Map model name to API identifier
         llm_model = "gpt-3.5-turbo"  # Default
         model_id = None
+        model_obj = None  # Initialize to avoid UnboundLocalError
 
         if model_name:
             # Try to get model from available models (API providers)

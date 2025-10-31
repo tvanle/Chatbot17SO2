@@ -99,15 +99,23 @@ class ModelClient:
             print(f"Error generating completion: {e}")
             return self._mock_completion(prompt)
 
+    def _safe_print(self, text: str):
+        """Print with encoding error handling for Windows console"""
+        try:
+            print(text)
+        except UnicodeEncodeError:
+            # Fallback to ASCII-only if console doesn't support Vietnamese
+            print(text.encode('ascii', 'ignore').decode('ascii'))
+
     def _mock_completion(self, prompt: str) -> str:
         """
         Mock completion for testing (when no real LLM available)
         Extracts and returns the retrieved contexts from the prompt
         """
         # Log full prompt to console
-        print("\n" + "="*80)
-        print("🔍 RAG RETRIEVAL - No API Key Configured")
-        print("="*80)
+        self._safe_print("\n" + "="*80)
+        self._safe_print("RAG RETRIEVAL - No API Key Configured")
+        self._safe_print("="*80)
 
         # Extract contexts from prompt
         contexts = []
@@ -126,32 +134,32 @@ class ModelClient:
 
         # Log extracted contexts
         if contexts:
-            print("📚 Nội dung tìm được từ Vector Database:\n")
+            self._safe_print("Noi dung tim duoc tu Vector Database:\n")
             for i, ctx in enumerate(contexts, 1):
-                print(f"[{i}] {ctx}\n")
+                self._safe_print(f"[{i}] {ctx}\n")
         else:
-            print("⚠️  Không tìm thấy context trong prompt")
+            self._safe_print("Khong tim thay context trong prompt")
 
-        print("="*80)
-        print("💡 Để sinh câu trả lời tự động, vui lòng cấu hình:")
-        print("   - OPENAI_API_KEY (GPT-3.5/GPT-4)")
-        print("   - hoặc ANTHROPIC_API_KEY (Claude)")
-        print("="*80 + "\n")
+        self._safe_print("="*80)
+        self._safe_print("De sinh cau tra loi tu dong, vui long cau hinh:")
+        self._safe_print("   - OPENAI_API_KEY (GPT-3.5/GPT-4)")
+        self._safe_print("   - hoac ANTHROPIC_API_KEY (Claude)")
+        self._safe_print("="*80 + "\n")
 
         # Return message to user
-        result = "⚠️ **Chưa cấu hình API Key LLM**\n\n"
-        result += "Hệ thống đã tìm thấy thông tin liên quan từ cơ sở dữ liệu, "
-        result += "nhưng cần API key để sinh câu trả lời tự động.\n\n"
+        result = "**Chua cau hinh API Key LLM**\n\n"
+        result += "He thong da tim thay thong tin lien quan tu co so du lieu, "
+        result += "nhung can API key de sinh cau tra loi tu dong.\n\n"
 
         if contexts:
-            result += "📚 **Thông tin tìm được:**\n\n"
+            result += "**Thong tin tim duoc:**\n\n"
             for ctx in contexts:
                 result += f"{ctx}\n\n"
             result += "\n---\n\n"
 
-        result += "💡 **Hướng dẫn cấu hình:**\n"
-        result += "- Thêm OPENAI_API_KEY vào file .env\n"
-        result += "- Hoặc thêm ANTHROPIC_API_KEY vào file .env\n"
+        result += "**Huong dan cau hinh:**\n"
+        result += "- Them OPENAI_API_KEY vao file .env\n"
+        result += "- Hoac them ANTHROPIC_API_KEY vao file .env\n"
 
         return result
 

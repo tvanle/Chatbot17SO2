@@ -87,11 +87,11 @@ class ModelProviderService:
                         "api_identifier": model["id"]
                     })
 
-            print(f"✅ Found {len(models)} OpenAI models")
+            print(f"Found {len(models)} OpenAI models")
             return models
 
         except Exception as e:
-            print(f"❌ Error fetching OpenAI models: {e}")
+            print(f"Error fetching OpenAI models: {e}")
             # Fallback to hardcoded list
             return [
                 {
@@ -135,7 +135,7 @@ class ModelProviderService:
                 }
             ]
         except Exception as e:
-            print(f"❌ Error fetching Anthropic models: {e}")
+            print(f"Error fetching Anthropic models: {e}")
             return []
 
     @staticmethod
@@ -155,7 +155,7 @@ class ModelProviderService:
                 }
             ]
         except Exception as e:
-            print(f"❌ Error fetching Google models: {e}")
+            print(f"Error fetching Google models: {e}")
             return []
 
     @staticmethod
