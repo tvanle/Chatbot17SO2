@@ -101,11 +101,13 @@ async def answer(request: AnswerRequest, db: Session = Depends(get_db)):
         contexts = fit_within_budget(context_texts, token_budget=request.token_budget)
 
         # ===== STEP 4: Generate answer with LLM (dynamic model) =====
+        # Enhanced: Now supports conversation history for multi-turn conversations
         generator = get_generator_service(request.model)
         answer_text = generator.generate(
             question=request.question,
             contexts=contexts,
-            language="vi"
+            language="vi",
+            conversation_history=request.conversation_history
         )
 
         # ===== STEP 5: Return result =====

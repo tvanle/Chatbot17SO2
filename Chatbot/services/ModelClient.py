@@ -1,8 +1,9 @@
 """
 ModelClient - Client for LLM inference
 Supports multiple backends: OpenAI, Claude, Local models
+Enhanced with conversation history support
 """
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 import os
 
 
@@ -57,14 +58,23 @@ class ModelClient:
             print(f"Error initializing LLM client: {e}")
             self.client = None
 
-    def complete(self, prompt: str, max_tokens: int = 512, temperature: float = 0.7) -> str:
+    def complete(
+        self,
+        prompt: str,
+        max_tokens: int = 512,
+        temperature: float = 0.7,
+        messages: Optional[List[Dict[str, str]]] = None
+    ) -> str:
         """
-        Generate completion from prompt
+        Generate completion from prompt with optional conversation history
 
         Args:
-            prompt: Input prompt
+            prompt: Current user prompt/question
             max_tokens: Maximum tokens to generate
             temperature: Sampling temperature (0-1)
+            messages: Optional conversation history in format:
+                     [{"role": "system|user|assistant", "content": "..."}]
+                     If provided, ignores single prompt parameter
 
         Returns:
             Generated text completion
@@ -73,22 +83,41 @@ class ModelClient:
             return self._mock_completion(prompt)
 
         try:
+            # Build messages list
+            if messages is None:
+                # Single-turn: just the user prompt
+                messages = [{"role": "user", "content": prompt}]
+
             if self.backend == "openai":
                 response = self.client.chat.completions.create(
                     model=self.model_name,
-                    messages=[{"role": "user", "content": prompt}],
+                    messages=messages,
                     max_tokens=max_tokens,
                     temperature=temperature
                 )
                 return response.choices[0].message.content
 
             elif self.backend == "anthropic":
-                response = self.client.messages.create(
-                    model=self.model_name,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                    messages=[{"role": "user", "content": prompt}]
-                )
+                # Anthropic requires separating system message
+                system_msg = None
+                conversation_msgs = []
+
+                for msg in messages:
+                    if msg["role"] == "system":
+                        system_msg = msg["content"]
+                    else:
+                        conversation_msgs.append(msg)
+
+                kwargs = {
+                    "model": self.model_name,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                    "messages": conversation_msgs
+                }
+                if system_msg:
+                    kwargs["system"] = system_msg
+
+                response = self.client.messages.create(**kwargs)
                 return response.content[0].text
 
             elif self.backend == "local":

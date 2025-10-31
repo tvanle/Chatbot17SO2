@@ -1,7 +1,8 @@
 """
 GeneratorService - Generates answers using LLM with retrieved context
+Enhanced with conversation history support
 """
-from typing import List, Optional
+from typing import List, Optional, Dict
 from Chatbot.services.ModelClient import ModelClient
 from Chatbot.config.rag_config import get_rag_config
 
@@ -33,30 +34,146 @@ class GeneratorService:
         )
         self.max_tokens = max_tokens or config.llm_max_tokens
 
-    def generate(self, question: str, contexts: List[str], language: str = "vi") -> str:
+    def generate(
+        self,
+        question: str,
+        contexts: List[str],
+        language: str = "vi",
+        conversation_history: Optional[List[Dict[str, str]]] = None
+    ) -> str:
         """
-        Generate answer to question using context chunks
+        Generate answer to question using context chunks with conversation history
 
         Args:
-            question: User's question
+            question: User's current question
             contexts: Retrieved context chunks (relevant text passages)
             language: Language for answer ("vi" or "en")
+            conversation_history: Previous conversation turns in format:
+                                 [{"role": "user|assistant", "content": "..."}]
+                                 Will use last 10 messages to maintain context
 
         Returns:
             Generated answer
         """
-        # Build prompt with context and question
-        prompt = self._build_prompt(question, contexts, language)
-
-        # Generate answer using LLM
         config = get_rag_config()
+
+        # Build messages with conversation context
+        messages = self._build_messages_with_context(
+            question, contexts, language, conversation_history
+        )
+
+        # Generate answer using LLM with conversation history
         answer = self.client.complete(
-            prompt,
+            prompt=question,  # Not used when messages provided
             max_tokens=self.max_tokens,
-            temperature=config.llm_temperature
+            temperature=config.llm_temperature,
+            messages=messages
         )
 
         return answer
+
+    def _build_messages_with_context(
+        self,
+        question: str,
+        contexts: List[str],
+        language: str,
+        conversation_history: Optional[List[Dict[str, str]]] = None,
+        max_history_turns: int = 10
+    ) -> List[Dict[str, str]]:
+        """
+        Build messages array with system context, conversation history, and current question
+        Following the reference implementation pattern for better conversational AI
+
+        Args:
+            question: Current user question
+            contexts: Retrieved RAG context chunks
+            language: Language for response
+            conversation_history: Previous conversation messages
+            max_history_turns: Maximum number of conversation turns to include
+
+        Returns:
+            List of messages in OpenAI chat format
+        """
+        messages = []
+
+        # Step 1: Build system message with RAG context (optimized, shorter prompt)
+        if language == "vi":
+            system_content = (
+                "Bạn là trợ lý AI của Học viện Công nghệ Bưu chính Viễn thông (PTIT). "
+                "Sử dụng thông tin được cung cấp để trả lời câu hỏi một cách chính xác, đầy đủ và thân thiện.\n\n"
+            )
+        else:
+            system_content = (
+                "You are an AI assistant for PTIT (Posts and Telecommunications Institute of Technology). "
+                "Use the provided information to answer questions accurately and comprehensively.\n\n"
+            )
+
+        # Add RAG retrieved context
+        if contexts:
+            if language == "vi":
+                system_content += "=== THÔNG TIN THAM KHẢO ===\n\n"
+            else:
+                system_content += "=== REFERENCE INFORMATION ===\n\n"
+
+            for i, ctx in enumerate(contexts, 1):
+                system_content += f"[Nguồn {i}]: {ctx}\n\n"
+
+            if language == "vi":
+                system_content += (
+                    "=== HƯỚng DẪN ===\n"
+                    "- Trả lời dựa trên thông tin tham khảo trên\n"
+                    "- Nếu câu hỏi về địa chỉ/liên hệ: liệt kê TẤT CẢ các địa điểm\n"
+                    "- Sử dụng bullet points khi cần thiết\n"
+                    "- Nếu thiếu thông tin: nói rõ và gợi ý cách tìm thêm\n"
+                )
+            else:
+                system_content += (
+                    "=== INSTRUCTIONS ===\n"
+                    "- Answer based on the reference information above\n"
+                    "- Use bullet points when appropriate\n"
+                    "- If information is insufficient, clearly state that\n"
+                )
+
+        messages.append({"role": "system", "content": system_content})
+
+        # Step 2: Add conversation history (last N turns for context window)
+        if conversation_history:
+            # Take only last N messages to avoid token limit
+            recent_history = conversation_history[-max_history_turns:]
+
+            # Add conversation history context marker
+            if language == "vi":
+                history_marker = "=== Lịch sử hội thoại trước đó ==="
+            else:
+                history_marker = "=== Previous conversation ==="
+
+            messages.append({"role": "system", "content": history_marker})
+
+            # Add each message from history
+            for msg in recent_history:
+                role = msg.get("role", "user")
+                content = msg.get("content", "")
+                if content and role in ["user", "assistant"]:
+                    messages.append({"role": role, "content": content})
+
+            # Add instruction to use conversation context
+            if language == "vi":
+                context_instruction = (
+                    "Sử dụng lịch sử hội thoại để hiểu ngữ cảnh và các đại từ tham chiếu "
+                    "(như 'nó', 'đó', 'cái đó', 'địa chỉ trên')."
+                )
+            else:
+                context_instruction = (
+                    "Use the conversation history to understand context and references "
+                    "(like 'it', 'that', 'the previous one')."
+                )
+
+            messages.append({"role": "system", "content": context_instruction})
+
+        # Step 3: Add current user question
+        messages.append({"role": "user", "content": question})
+
+        return messages
 
     def _build_prompt(self, question: str, contexts: List[str], language: str) -> str:
         """
