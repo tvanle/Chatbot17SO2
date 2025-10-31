@@ -22,6 +22,24 @@ services:
       timeout: 10s
       retries: 3
 
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: chatbot_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    networks:
+      - chatbot_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # FastAPI Backend + RAG Service
   backend:
     build:
@@ -39,12 +57,19 @@ services:
     environment:
       # OpenAI API
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
 
       # Qdrant Configuration
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
       - QDRANT_API_KEY=${QDRANT_API_KEY:-}
       - QDRANT_COLLECTION=ptit_documents
+
+      # Redis Cache Configuration
+      - ENABLE_CACHE=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
 
       # Database (SQLite by default)
       - USE_SQLITE=true
@@ -54,6 +79,8 @@ services:
       - PYTHONIOENCODING=utf-8
     depends_on:
       qdrant:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: unless-stopped
     networks:
@@ -86,4 +113,6 @@ networks:
 
 volumes:
   qdrant_storage:
+    driver: local
+  redis_data:
     driver: local
