@@ -4,7 +4,7 @@ RAGController - HTTP endpoints for RAG operations
 TOÀN BỘ LOGIC RAG Ở ĐÂY - Controller là nơi xử lý chính
 Không cần RAGService trung gian, logic trực tiếp trong controller
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from BE.db.session import get_db
@@ -28,37 +28,37 @@ from Chatbot.utils.token_counter import estimate_tokens, fit_within_budget
 # Create FastAPI router
 router = APIRouter(prefix="/api/rag", tags=["RAG"])
 
-# Singleton services (tránh reload models nhiều lần)
-_vectorizer_service = None
-_generator_service = None
 
-
-def get_vectorizer_service():
-    """Get singleton VectorizerService"""
-    global _vectorizer_service
-    if _vectorizer_service is None:
-        _vectorizer_service = VectorizerService()
-    return _vectorizer_service
-
-
-def get_generator_service(model_name: str = None):
+def get_vectorizer_service(request: Request = None):
     """
-    Get or create GeneratorService for the specified model
-    Uses config defaults if model_name is None
-    API key được load tự động từ .env trong ModelClient
+    Get VectorizerService from app.state
+    Falls back to creating new instance if not in app.state (for backward compatibility)
     """
-    global _generator_service
-    config = get_rag_config()
-    model_to_use = model_name or config.llm_model
+    if request and hasattr(request.app.state, 'vectorizer') and request.app.state.vectorizer:
+        return request.app.state.vectorizer
+    # Fallback: create new (shouldn't happen if startup ran correctly)
+    print("⚠️  WARNING: Creating new VectorizerService (app.state not available)")
+    return VectorizerService()
 
-    # Recreate if model changed
-    if _generator_service is None or _generator_service.client.model_name != model_to_use:
-        _generator_service = GeneratorService(model_name=model_to_use)
-    return _generator_service
+
+def get_generator_service(request: Request = None, model_name: str = None):
+    """
+    Get GeneratorService from app.state
+    Falls back to creating new instance if not in app.state
+    """
+    if request and hasattr(request.app.state, 'generator') and request.app.state.generator:
+        # Check if model matches
+        config = get_rag_config()
+        model_to_use = model_name or config.llm_model
+        if request.app.state.generator.client.model_name == model_to_use:
+            return request.app.state.generator
+    # Fallback or different model requested
+    print(f"⚠️  WARNING: Creating new GeneratorService (app.state not available or model mismatch)")
+    return GeneratorService(model_name=model_name)
 
 
 @router.post("/answer", response_model=AnswerResult)
-async def answer(request: AnswerRequest, db: Session = Depends(get_db)):
+async def answer(answer_request: AnswerRequest, request: Request, db: Session = Depends(get_db)):
     """
     Answer endpoint - RAG query flow
 
@@ -69,7 +69,8 @@ async def answer(request: AnswerRequest, db: Session = Depends(get_db)):
     4. Return với citations
 
     Args:
-        request: AnswerRequest with question and parameters
+        answer_request: AnswerRequest with question and parameters
+        request: FastAPI Request (for accessing app.state)
         db: Database session
 
     Returns:
@@ -77,8 +78,8 @@ async def answer(request: AnswerRequest, db: Session = Depends(get_db)):
     """
     try:
         # ===== STEP 1: Vectorize question =====
-        vectorizer = get_vectorizer_service()
-        query_vector = vectorizer.embed(request.question)
+        vectorizer = get_vectorizer_service(request)
+        query_vector = vectorizer.embed(answer_request.question)
 
         # ===== STEP 2: Retrieve relevant chunks =====
         retriever = RetrieverService(db)
@@ -121,7 +122,7 @@ async def answer(request: AnswerRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/ingest", response_model=IngestResult)
-async def ingest(request: IngestRequest, db: Session = Depends(get_db)):
+async def ingest(ingest_request: IngestRequest, request: Request, db: Session = Depends(get_db)):
     """
     Ingest endpoint - Document ingestion flow
 
@@ -174,13 +175,13 @@ async def ingest(request: IngestRequest, db: Session = Depends(get_db)):
 
         # Step 7-8: Embed chunks in batch (Sequence diagram line 24-25)
         chunk_texts_list = [chunk.text for chunk in chunks]
-        vectorizer = get_vectorizer_service()  # Sử dụng singleton
+        vectorizer = get_vectorizer_service(request)  # Sử dụng singleton
         vectors = vectorizer.embed_batch(chunk_texts_list)
 
         # Step 9-10: Upsert vectors to index (Sequence diagram line 27-28)
         vidx = VectorIndexDAO(db)
         pairs = [(chunk.id, vector) for chunk, vector in zip(chunks, vectors)]
-        vidx.upsert(request.namespace_id, pairs)
+        vidx.upsert(ingest_request.namespace_id, pairs)
 
         # Step 11: Return result (Sequence diagram line 30)
         return IngestResult(
@@ -272,7 +273,7 @@ async def delete_document(doc_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/health")
-async def health_check():
+async def health_check(request: Request):
     """
     Health check endpoint for RAG service
 
@@ -283,8 +284,8 @@ async def health_check():
         from Chatbot.config.rag_config import get_rag_config
         config = get_rag_config()
 
-        vectorizer = get_vectorizer_service()
-        generator = get_generator_service()
+        vectorizer = get_vectorizer_service(request)
+        generator = get_generator_service(request)
 
         # Check Qdrant backend (VectorIndexDAO now uses Qdrant)
         vector_backend_info = {

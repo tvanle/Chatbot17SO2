@@ -25,18 +25,27 @@ class VectorizerService:
             embed_model: Model name for sentence-transformers (optional, uses config if None)
             enable_cache: Enable Redis caching (optional, uses config if None)
         """
+        logger.info("🚀 VectorizerService.__init__() called")
+        print("🚀 VectorizerService.__init__() called")
+
         config = get_rag_config()
         self.embed_model = embed_model or config.embedding_model
         self.embedding_dimension = config.embedding_dimension
         self.model = None
         self._cache = None
 
-        # Initialize cache if enabled
-        self.enable_cache = enable_cache if enable_cache is not None else config.enable_cache
-        if self.enable_cache:
-            self._init_cache()
+        logger.info(f"   Model: {self.embed_model}")
+        logger.info(f"   Dimension: {self.embedding_dimension}")
 
+        # DISABLE CACHE FOR NOW - causing issues
+        self.enable_cache = False
+        logger.info("   Cache DISABLED (hardcoded for debugging)")
+
+        logger.info("   Calling _load_model()...")
+        print("   Calling _load_model()...")
         self._load_model()
+        logger.info("✓ VectorizerService.__init__() completed")
+        print("✓ VectorizerService.__init__() completed")
 
     def _init_cache(self):
         """Initialize Redis cache"""
@@ -58,14 +67,27 @@ class VectorizerService:
     def _load_model(self):
         """Load the embedding model (lazy loading)"""
         try:
+            import sys
+            logger.info(f"🔄 Attempting to load embedding model: {self.embed_model}")
+            logger.info(f"   Python: {sys.executable}")
+            logger.info(f"   sys.path[0]: {sys.path[0]}")
+
             from sentence_transformers import SentenceTransformer
+            logger.info("✓ sentence_transformers imported successfully")
+
             self.model = SentenceTransformer(self.embed_model)
-            print(f"Loaded embedding model: {self.embed_model}")
-        except ImportError:
-            print("WARNING: sentence-transformers not installed. Install with: pip install sentence-transformers")
+            logger.info(f"✅ Loaded embedding model: {self.embed_model}")
+            logger.info(f"   Dimension: {self.model.get_sentence_embedding_dimension()}")
+            print(f"✅ Loaded embedding model: {self.embed_model}")
+        except ImportError as e:
+            logger.error(f"❌ ImportError: sentence-transformers not installed - {e}")
+            print(f"WARNING: sentence-transformers not installed. Install with: pip install sentence-transformers")
             self.model = None
         except Exception as e:
+            logger.error(f"❌ Exception loading embedding model: {e}", exc_info=True)
             print(f"Error loading embedding model: {e}")
+            import traceback
+            traceback.print_exc()
             self.model = None
 
     def embed(self, text: str) -> np.ndarray:

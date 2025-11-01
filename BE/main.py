@@ -31,10 +31,39 @@ def startup():
     try:
         Base.metadata.create_all(bind=engine)
         app.state.db_ready = True
-        logging.info("DB initialization succeeded")
+        logging.info("✅ DB initialization succeeded")
     except Exception:
         app.state.db_ready = False
-        logging.exception("DB initialization failed on startup")
+        logging.exception("❌ DB initialization failed on startup")
+
+    # CRITICAL: Pre-load embedding model at startup and STORE IN app.state
+    # This ensures the model is loaded once and reused for all requests
+    # Using app.state instead of module globals to survive uvicorn reloads
+    try:
+        logging.info("🔄 Pre-loading RAG services at startup...")
+        print("🔄 Pre-loading RAG services at startup...")
+
+        from Chatbot.services.VectorizerService import VectorizerService
+        from Chatbot.services.GeneratorService import GeneratorService
+
+        # Create and store in app.state (NOT module globals)
+        app.state.vectorizer = VectorizerService()
+        app.state.generator = GeneratorService()
+
+        logging.info(f"✅ VectorizerService loaded: model={app.state.vectorizer.model is not None}")
+        logging.info(f"✅ GeneratorService loaded")
+        print(f"✅ VectorizerService loaded: model={app.state.vectorizer.model is not None}")
+        print(f"✅ GeneratorService loaded")
+
+        app.state.rag_ready = True
+    except Exception as e:
+        app.state.rag_ready = False
+        app.state.vectorizer = None
+        app.state.generator = None
+        logging.exception(f"❌ RAG services initialization failed: {e}")
+        print(f"❌ RAG services initialization failed: {e}")
+        import traceback
+        traceback.print_exc()
 
 @app.get("/health")
 def health():
