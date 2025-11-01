@@ -31,8 +31,8 @@ export class UIManager {
         // User button
         DOM.userBtn?.addEventListener('click', () => this.showUserMenu());
 
-        // New chat button
-        DOM.newChatBtn?.addEventListener('click', () => this.handleNewChat());
+        // Note: New chat button event listener is handled in main.js
+        // to coordinate between ChatManager and UIManager
 
         // Auto-resize textarea
         DOM.messageInput.addEventListener('input', function () {

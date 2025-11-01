@@ -135,9 +135,16 @@ export class ChatManager {
             };
 
             this.chatHistories.unshift(newChat);
+            this.currentChatId = newChat.id;
             this.saveChatHistories();
             this.renderChatList();
-            this.loadChat(newChat.id);
+
+            // Don't load chat if this is being called during sendMessage
+            // The sendMessage function will handle adding messages to DOM
+            if (!firstMessage) {
+                // Only clear messages if user explicitly clicked "New Chat" button
+                DOM.messages.innerHTML = '';
+            }
 
             return newChat.id;
         } catch (err) {
@@ -145,6 +152,22 @@ export class ChatManager {
             showNotification('Lỗi kết nối tới server', 'error');
             return null;
         }
+    }
+
+    // Create typing indicator
+    createTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message assistant-message typing-indicator';
+        typingDiv.innerHTML = `
+            <div class="message-content">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        `;
+        return typingDiv;
     }
 
     // Send message
@@ -161,12 +184,20 @@ export class ChatManager {
         DOM.messages.appendChild(userMessage);
         scrollToBottom(DOM.messages);
 
+        // Show typing indicator
+        const typingIndicator = this.createTypingIndicator();
+        DOM.messages.appendChild(typingIndicator);
+        scrollToBottom(DOM.messages);
+
         try {
             // Get selected model from UI
             const modelElement = document.getElementById('currentModel');
             const selectedModel = modelElement ? modelElement.textContent.trim() : null;
 
             const data = await apiService.sendMessage(this.currentChatId, text, selectedModel);
+
+            // Remove typing indicator
+            typingIndicator.remove();
 
             if (data.ok) {
                 // Display bot response
@@ -187,6 +218,11 @@ export class ChatManager {
             }
         } catch (err) {
             console.error('Error sending message:', err);
+            // Remove typing indicator on error
+            const typingIndicator = DOM.messages.querySelector('.typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
             showNotification('Lỗi kết nối tới server', 'error');
         }
     }
