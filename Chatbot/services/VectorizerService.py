@@ -25,9 +25,6 @@ class VectorizerService:
             embed_model: Model name for sentence-transformers (optional, uses config if None)
             enable_cache: Enable Redis caching (optional, uses config if None)
         """
-        logger.info("🚀 VectorizerService.__init__() called")
-        print("🚀 VectorizerService.__init__() called")
-
         config = get_rag_config()
         self.embed_model = embed_model or config.embedding_model
         self.embedding_dimension = config.embedding_dimension
