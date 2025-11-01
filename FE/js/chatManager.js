@@ -29,15 +29,38 @@ export class ChatManager {
             this.saveChatHistories();
             this.renderChatList();
 
-            // Load first chat by default
+            // Load first chat by default if exists
             if (this.chatHistories.length > 0) {
                 await this.loadChat(this.chatHistories[0].id);
+            } else {
+                // Show welcome message if no chat history
+                this.showWelcomeMessage();
             }
         } catch (err) {
             console.error('Error loading chat histories:', err);
             this.chatHistories = [];
             this.renderChatList();
+            // Show welcome message on error
+            this.showWelcomeMessage();
         }
+    }
+
+    // Show welcome message
+    showWelcomeMessage() {
+        DOM.messages.innerHTML = `
+            <div class="message assistant-message">
+                <div class="message-content">
+                    <p>Xin chào! Tôi là trợ lý AI của PTIT. Tôi có thể giúp bạn tìm hiểu về:</p>
+                    <ul>
+                        <li>📚 Quy chế đào tạo và học vụ</li>
+                        <li>🎓 Thông tin tuyển sinh</li>
+                        <li>📍 Địa chỉ và liên hệ các phòng ban</li>
+                        <li>🌐 Các hệ thống trực tuyến của PTIT</li>
+                    </ul>
+                    <p>Bạn muốn hỏi gì?</p>
+                </div>
+            </div>
+        `;
     }
 
     // Save to localStorage
@@ -115,7 +138,7 @@ export class ChatManager {
     }
 
     // Create new chat
-    async createNewChat(firstMessage = null) {
+    async createNewChat(firstMessage = null, clearMessages = false) {
         try {
             const title = firstMessage ? firstMessage.substring(0, 30) + (firstMessage.length > 30 ? '...' : '') : 'New Chat';
 
@@ -139,10 +162,9 @@ export class ChatManager {
             this.saveChatHistories();
             this.renderChatList();
 
-            // Don't load chat if this is being called during sendMessage
-            // The sendMessage function will handle adding messages to DOM
-            if (!firstMessage) {
-                // Only clear messages if user explicitly clicked "New Chat" button
+            // Only clear messages if explicitly requested (when user clicks "New Chat" button)
+            // NEVER clear when called from sendMessage (firstMessage exists)
+            if (clearMessages) {
                 DOM.messages.innerHTML = '';
             }
 

@@ -18,7 +18,7 @@
         </div>
 
         <div class="sidebar-actions">
-            <button class="action-btn" id="newChatBtn">
+            <button type="button" class="action-btn" id="newChatBtn">
                 <i class="far fa-edit"></i>
                 <span>New chat</span>
             </button>
@@ -46,19 +46,7 @@
     <main class="chat-container">
 
         <div class="messages" id="messages">
-            <!-- Messages will be loaded dynamically from server -->
-            <div class="message assistant-message">
-                <div class="message-content">
-                    <p>Xin chào! Tôi là trợ lý AI của PTIT. Tôi có thể giúp bạn tìm hiểu về:</p>
-                    <ul>
-                        <li>📚 Quy chế đào tạo và học vụ</li>
-                        <li>🎓 Thông tin tuyển sinh</li>
-                        <li>📍 Địa chỉ và liên hệ các phòng ban</li>
-                        <li>🌐 Các hệ thống trực tuyến của PTIT</li>
-                    </ul>
-                    <p>Bạn muốn hỏi gì?</p>
-                </div>
-            </div>
+            <!-- Messages will be loaded dynamically from JavaScript -->
         </div>
 
         <div class="input-container">
@@ -68,7 +56,7 @@
                     placeholder="Hãy hỏi gì đó" 
                     rows="1"
                 ></textarea>
-                <button class="send-btn" id="sendBtn">
+                <button type="button" class="send-btn" id="sendBtn">
                     <i class="fas fa-arrow-up"></i>
                 </button>
             </div>

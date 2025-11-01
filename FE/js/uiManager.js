@@ -321,23 +321,28 @@ export class UIManager {
         }
     }
 
-    // Handle new chat
-    handleNewChat() {
-        // This will be called from main.js with chatManager
-        DOM.messages.innerHTML = `
-            <div class="message assistant-message">
-                <div class="message-content">
-                    <p>Xin chào! Tôi là trợ lý AI của PTIT. Tôi có thể giúp bạn tìm hiểu về:</p>
-                    <ul>
-                        <li>📚 Quy chế đào tạo và học vụ</li>
-                        <li>🎓 Thông tin tuyển sinh</li>
-                        <li>📍 Địa chỉ và liên hệ các phòng ban</li>
-                        <li>🌐 Các hệ thống trực tuyến của PTIT</li>
-                    </ul>
-                    <p>Bạn muốn hỏi gì?</p>
+    // Handle new chat - to be called with chatManager reference
+    handleNewChat(chatManager) {
+        // Clear messages and show welcome message via ChatManager
+        if (chatManager && chatManager.showWelcomeMessage) {
+            chatManager.showWelcomeMessage();
+        } else {
+            // Fallback if chatManager not provided
+            DOM.messages.innerHTML = `
+                <div class="message assistant-message">
+                    <div class="message-content">
+                        <p>Xin chào! Tôi là trợ lý AI của PTIT. Tôi có thể giúp bạn tìm hiểu về:</p>
+                        <ul>
+                            <li>📚 Quy chế đào tạo và học vụ</li>
+                            <li>🎓 Thông tin tuyển sinh</li>
+                            <li>📍 Địa chỉ và liên hệ các phòng ban</li>
+                            <li>🌐 Các hệ thống trực tuyến của PTIT</li>
+                        </ul>
+                        <p>Bạn muốn hỏi gì?</p>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        }
 
         // Close sidebar on mobile
         if (window.innerWidth <= 768) {
