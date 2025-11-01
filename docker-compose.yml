@@ -85,7 +85,7 @@ services:
     restart: unless-stopped
     networks:
       - chatbot_network
-    command: uvicorn BE.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn BE.main:app --host 0.0.0.0 --port 8000
 
   # Optional: Data Management Service (Flask)
   # Uncomment if you need file upload and web crawling features
