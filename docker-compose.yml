@@ -17,10 +17,11 @@ services:
     networks:
       - chatbot_network
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:6333/health"]
+      test: ["CMD-SHELL", "curl -f http://localhost:6333/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 10s
 
   # Redis Cache
   redis:
@@ -78,10 +79,8 @@ services:
       - PYTHONUNBUFFERED=1
       - PYTHONIOENCODING=utf-8
     depends_on:
-      qdrant:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - qdrant
+      - redis
     restart: unless-stopped
     networks:
       - chatbot_network
