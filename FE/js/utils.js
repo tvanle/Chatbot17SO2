@@ -71,6 +71,22 @@ export function createMessageElement(text, type) {
     return messageDiv;
 }
 
+// Create typing indicator
+export function createTypingIndicator() {
+    const div = document.createElement('div');
+    div.className = 'message assistant-message typing-indicator';
+    div.innerHTML = `
+        <div class="message-content">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    `;
+    return div;
+}
+
 // Get current user from storage
 export function getCurrentUser() {
     try {

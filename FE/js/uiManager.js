@@ -13,6 +13,43 @@ export class UIManager {
         this.injectStyles();
     }
 
+    // Helper: Create dropdown menu
+    createDropdownMenu(triggerElement, content, onClose = null) {
+        const menu = document.createElement('div');
+        menu.className = 'dropdown-menu';
+        menu.innerHTML = content;
+
+        const rect = triggerElement.getBoundingClientRect();
+        menu.style.cssText = `
+            position: fixed;
+            top: ${rect.bottom + 8}px;
+            left: ${rect.left}px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            min-width: 200px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        `;
+
+        document.body.appendChild(menu);
+
+        // Close menu when clicking outside
+        setTimeout(() => {
+            const closeHandler = (e) => {
+                if (!menu.contains(e.target) && e.target !== triggerElement) {
+                    menu.remove();
+                    document.removeEventListener('click', closeHandler);
+                    onClose?.();
+                }
+            };
+            document.addEventListener('click', closeHandler);
+        }, 100);
+
+        return menu;
+    }
+
     // Setup all event listeners
     setupEventListeners() {
         // Theme toggle
@@ -83,14 +120,11 @@ export class UIManager {
 
     // Model selector
     async showModelSelector() {
-        const menu = document.createElement('div');
-        menu.className = 'model-menu';
-
         try {
             const data = await apiService.getModels();
             const models = data.models || [];
 
-            menu.innerHTML = models.map(model => `
+            const content = models.map(model => `
                 <div class="model-item" data-model="${model.name}">
                     <div class="model-info">
                         <div class="model-name">${model.name}</div>
@@ -100,42 +134,18 @@ export class UIManager {
                 </div>
             `).join('');
 
-            const rect = DOM.modelSelector.getBoundingClientRect();
-            menu.style.cssText = `
-                position: fixed;
-                top: ${rect.bottom + 8}px;
-                left: ${rect.left}px;
-                background: var(--bg-tertiary);
-                border: 1px solid var(--border-color);
-                border-radius: 8px;
-                padding: 8px;
-                min-width: 280px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                z-index: 1000;
-            `;
-
-            document.body.appendChild(menu);
+            const menu = this.createDropdownMenu(DOM.modelSelector, content);
+            menu.style.minWidth = '280px';
 
             // Handle model selection
             menu.querySelectorAll('.model-item').forEach(item => {
                 item.addEventListener('click', () => {
-                    const modelName = item.dataset.model;
-                    DOM.currentModelSpan.textContent = modelName;
-                    localStorage.setItem('selectedModel', modelName);
-                    showNotification(`Đã chuyển sang ${modelName}`, 'success');
+                    DOM.currentModelSpan.textContent = item.dataset.model;
+                    localStorage.setItem('selectedModel', item.dataset.model);
+                    showNotification(`Đã chuyển sang ${item.dataset.model}`, 'success');
                     menu.remove();
                 });
             });
-
-            // Close menu when clicking outside
-            setTimeout(() => {
-                document.addEventListener('click', function closeMenu(e) {
-                    if (!menu.contains(e.target) && e.target !== DOM.modelSelector) {
-                        menu.remove();
-                        document.removeEventListener('click', closeMenu);
-                    }
-                });
-            }, 100);
         } catch (err) {
             console.error('Error fetching models', err);
             showNotification('Lỗi khi kết nối tới server để lấy mô hình', 'error');
@@ -178,57 +188,37 @@ export class UIManager {
 
     // User menu
     showUserMenu() {
-        const menu = document.createElement('div');
-        menu.className = 'user-menu';
-        menu.innerHTML = `
-            <div class="user-menu-item" id="profile-menu-item">
+        const content = `
+            <div class="user-menu-item" data-action="profile">
                 <i class="fas fa-user"></i>
                 <span>Hồ sơ</span>
             </div>
             <div class="user-menu-divider"></div>
-            <div class="user-menu-item" id="logout-menu-item">
+            <div class="user-menu-item" data-action="logout">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Đăng xuất</span>
             </div>
         `;
 
-        // Position menu
+        const menu = this.createDropdownMenu(DOM.userBtn, content);
+
+        // Position from bottom
         const rect = DOM.userBtn.getBoundingClientRect();
-        menu.style.cssText = `
-            position: fixed;
-            bottom: ${window.innerHeight - rect.top + 10}px;
-            left: ${rect.left}px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px;
-            min-width: 200px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-        `;
+        menu.style.top = 'auto';
+        menu.style.bottom = `${window.innerHeight - rect.top + 10}px`;
 
-        document.body.appendChild(menu);
+        // Handle menu actions
+        menu.addEventListener('click', (e) => {
+            const item = e.target.closest('.user-menu-item');
+            if (!item) return;
 
-        // Add event listeners
-        menu.querySelector('#profile-menu-item').addEventListener('click', () => {
             menu.remove();
-            this.showProfile();
+            if (item.dataset.action === 'profile') {
+                this.showProfile();
+            } else if (item.dataset.action === 'logout') {
+                this.handleLogout();
+            }
         });
-
-        menu.querySelector('#logout-menu-item').addEventListener('click', () => {
-            menu.remove();
-            this.handleLogout();
-        });
-
-        // Close menu when clicking outside
-        setTimeout(() => {
-            document.addEventListener('click', function closeMenu(e) {
-                if (!menu.contains(e.target) && e.target !== DOM.userBtn) {
-                    menu.remove();
-                    document.removeEventListener('click', closeMenu);
-                }
-            });
-        }, 100);
     }
 
     // Show profile modal
@@ -324,24 +314,8 @@ export class UIManager {
     // Handle new chat - to be called with chatManager reference
     handleNewChat(chatManager) {
         // Clear messages and show welcome message via ChatManager
-        if (chatManager && chatManager.showWelcomeMessage) {
+        if (chatManager?.showWelcomeMessage) {
             chatManager.showWelcomeMessage();
-        } else {
-            // Fallback if chatManager not provided
-            DOM.messages.innerHTML = `
-                <div class="message assistant-message">
-                    <div class="message-content">
-                        <p>Xin chào! Tôi là trợ lý AI của PTIT. Tôi có thể giúp bạn tìm hiểu về:</p>
-                        <ul>
-                            <li>📚 Quy chế đào tạo và học vụ</li>
-                            <li>🎓 Thông tin tuyển sinh</li>
-                            <li>📍 Địa chỉ và liên hệ các phòng ban</li>
-                            <li>🌐 Các hệ thống trực tuyến của PTIT</li>
-                        </ul>
-                        <p>Bạn muốn hỏi gì?</p>
-                    </div>
-                </div>
-            `;
         }
 
         // Close sidebar on mobile

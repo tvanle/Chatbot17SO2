@@ -1,6 +1,6 @@
 // Chat Manager - Quản lý chat histories và messages
 import { apiService } from './apiService.js';
-import { showNotification, scrollToBottom, createMessageElement } from './utils.js';
+import { showNotification, scrollToBottom, createMessageElement, createTypingIndicator } from './utils.js';
 import { DOM } from './config.js';
 
 export class ChatManager {
@@ -26,7 +26,6 @@ export class ChatManager {
                 this.chatHistories = [];
             }
 
-            this.saveChatHistories();
             this.renderChatList();
 
             // Load first chat by default if exists
@@ -63,13 +62,10 @@ export class ChatManager {
         `;
     }
 
-    // Save to localStorage
-    saveChatHistories() {
-        localStorage.setItem('chatHistories', JSON.stringify(this.chatHistories));
-    }
-
     // Render chat list
     renderChatList() {
+        // Save to localStorage when rendering
+        localStorage.setItem('chatHistories', JSON.stringify(this.chatHistories));
         const chatList = document.querySelector('.chat-list');
         if (!chatList) return;
 
@@ -85,9 +81,7 @@ export class ChatManager {
             item.addEventListener('click', () => {
                 const chatId = item.dataset.chatId;
                 if (chatId !== this.currentChatId) {
-                    this.currentChatId = chatId;
                     this.loadChat(chatId);
-                    this.renderChatList();
                 }
             });
         });
@@ -96,11 +90,7 @@ export class ChatManager {
     // Load chat messages
     async loadChat(chatId) {
         this.currentChatId = chatId;
-
-        // Update active state
-        document.querySelectorAll('.chat-item').forEach(item => {
-            item.classList.toggle('active', item.dataset.chatId == chatId);
-        });
+        this.renderChatList(); // Update active state
 
         try {
             const data = await apiService.getChatMessages(chatId);
@@ -110,19 +100,16 @@ export class ChatManager {
                 return;
             }
 
-            // Clear and load messages
+            // Clear and render messages
             DOM.messages.innerHTML = '';
-
             data.messages.forEach(msg => {
-                const messageElement = createMessageElement(msg.content, msg.type);
-                DOM.messages.appendChild(messageElement);
+                DOM.messages.appendChild(createMessageElement(msg.content, msg.type));
             });
 
             // Update local chat history
             const chat = this.chatHistories.find(c => c.id == chatId);
             if (chat) {
                 chat.messages = data.messages;
-                this.saveChatHistories();
             }
 
             scrollToBottom(DOM.messages);
@@ -159,7 +146,6 @@ export class ChatManager {
 
             this.chatHistories.unshift(newChat);
             this.currentChatId = newChat.id;
-            this.saveChatHistories();
             this.renderChatList();
 
             // Only clear messages if explicitly requested (when user clicks "New Chat" button)
@@ -176,21 +162,6 @@ export class ChatManager {
         }
     }
 
-    // Create typing indicator
-    createTypingIndicator() {
-        const typingDiv = document.createElement('div');
-        typingDiv.className = 'message assistant-message typing-indicator';
-        typingDiv.innerHTML = `
-            <div class="message-content">
-                <div class="typing-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-        `;
-        return typingDiv;
-    }
 
     // Send message
     async sendMessage(text) {
@@ -207,7 +178,7 @@ export class ChatManager {
         scrollToBottom(DOM.messages);
 
         // Show typing indicator
-        const typingIndicator = this.createTypingIndicator();
+        const typingIndicator = createTypingIndicator();
         DOM.messages.appendChild(typingIndicator);
         scrollToBottom(DOM.messages);
 
@@ -233,7 +204,7 @@ export class ChatManager {
                     chat.messages.push({ type: 'user', content: text });
                     chat.messages.push({ type: 'assistant', content: data.bot_message.content, model: data.bot_message.model });
                     chat.timestamp = Date.now();
-                    this.saveChatHistories();
+                    localStorage.setItem('chatHistories', JSON.stringify(this.chatHistories));
                 }
             } else {
                 showNotification(data.message || 'Lỗi khi gửi tin nhắn', 'error');
