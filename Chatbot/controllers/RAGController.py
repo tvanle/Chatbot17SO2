@@ -84,9 +84,9 @@ async def answer(answer_request: AnswerRequest, request: Request, db: Session = 
         # ===== STEP 2: Retrieve relevant chunks =====
         retriever = RetrieverService(db)
         hits = retriever.search(
-            namespace=request.namespace_id,
+            namespace=answer_request.namespace_id,
             query_vector=query_vector,
-            top_k=request.top_k,
+            top_k=answer_request.top_k,
             filters=None
         )
 
@@ -99,16 +99,16 @@ async def answer(answer_request: AnswerRequest, request: Request, db: Session = 
 
         # ===== STEP 3: Fit contexts within token budget =====
         context_texts = [hit.chunk["text"] for hit in hits if hit.chunk]
-        contexts = fit_within_budget(context_texts, token_budget=request.token_budget)
+        contexts = fit_within_budget(context_texts, token_budget=answer_request.token_budget)
 
         # ===== STEP 4: Generate answer with LLM (dynamic model) =====
         # Enhanced: Now supports conversation history for multi-turn conversations
-        generator = get_generator_service(request.model)
+        generator = get_generator_service(request, answer_request.model)
         answer_text = generator.generate(
-            question=request.question,
+            question=answer_request.question,
             contexts=contexts,
             language="vi",
-            conversation_history=request.conversation_history
+            conversation_history=answer_request.conversation_history
         )
 
         # ===== STEP 5: Return result =====
@@ -145,16 +145,16 @@ async def ingest(ingest_request: IngestRequest, request: Request, db: Session = 
         # Step 1: Upsert document (Sequence diagram line 12-13)
         doc_dao = DocumentDAO(db)
         document = Document(
-            source_uri=request.namespace_id,  # Using namespace as source_uri for now
-            title=request.document_title,
-            text=request.content
+            source_uri=ingest_request.namespace_id,  # Using namespace as source_uri for now
+            title=ingest_request.document_title,
+            text=ingest_request.content
         )
         doc_id = doc_dao.upsert(document)
 
         # Step 2-3: Split content into chunks (Sequence diagram line 15-16)
         config = get_rag_config()
         chunk_texts = chunk_text(
-            request.content,
+            ingest_request.content,
             chunk_size=config.chunk_size,
             chunk_overlap=config.chunk_overlap
         )
