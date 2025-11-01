@@ -70,7 +70,7 @@ export class ChatManager {
         if (!chatList) return;
 
         chatList.innerHTML = this.chatHistories.map((chat, index) => `
-            <button class="chat-item ${chat.id === this.currentChatId ? 'active' : ''}" data-chat-id="${chat.id}">
+            <button type="button" class="chat-item ${chat.id === this.currentChatId ? 'active' : ''}" data-chat-id="${chat.id}">
                 ${index === 0 ? '<i class="far fa-comment"></i>' : ''}
                 <span class="chat-title">${chat.title}</span>
             </button>
@@ -187,7 +187,23 @@ export class ChatManager {
             const modelElement = document.getElementById('currentModel');
             const selectedModel = modelElement ? modelElement.textContent.trim() : null;
 
-            const data = await apiService.sendMessage(this.currentChatId, text, selectedModel);
+            console.log('🚀 Sending message:', text);
+            console.log('📝 Chat ID:', this.currentChatId);
+            console.log('🤖 Selected model:', selectedModel);
+
+            // Add try-catch để bắt lỗi navigation/reload
+            let data;
+            try {
+                data = await apiService.sendMessage(this.currentChatId, text, selectedModel);
+                console.log('✅ Response received successfully');
+            } catch (apiError) {
+                console.error('❌ API Error:', apiError);
+                throw apiError;
+            }
+
+            console.log('✅ Response data:', data);
+            console.log('📄 Bot message content:', data?.bot_message?.content);
+            console.log('📊 Content length:', data?.bot_message?.content?.length);
 
             // Remove typing indicator
             typingIndicator.remove();

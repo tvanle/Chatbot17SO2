@@ -80,8 +80,8 @@ export class UIManager {
         // Close sidebar on mobile when clicking outside
         document.addEventListener('click', (e) => {
             if (window.innerWidth <= 768) {
-                if (!DOM.sidebar.contains(e.target) &&
-                    !DOM.mobileMenuBtn.contains(e.target) &&
+                if (DOM.sidebar && !DOM.sidebar.contains(e.target) &&
+                    (!DOM.mobileMenuBtn || !DOM.mobileMenuBtn.contains(e.target)) &&
                     DOM.sidebar.classList.contains('active')) {
                     DOM.sidebar.classList.remove('active');
                 }
@@ -248,7 +248,7 @@ export class UIManager {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h2>Hồ sơ người dùng</h2>
-                        <button class="modal-close">
+                        <button type="button" class="modal-close">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -274,7 +274,7 @@ export class UIManager {
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn-cancel">Đóng</button>
+                        <button type="button" class="btn-cancel">Đóng</button>
                     </div>
                 </div>
             `;
