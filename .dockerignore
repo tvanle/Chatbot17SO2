@@ -1,4 +1,12 @@
-# Python
+# .dockerignore - Optimize Docker build context and image size
+
+# ===== Git =====
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# ===== Python Cache =====
 __pycache__/
 *.py[cod]
 *$py.class
@@ -19,67 +27,149 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.pytest_cache/
+.mypy_cache/
+.tox/
+htmlcov/
+.coverage
 
-# Virtual environments
+# ===== Virtual Environments (DON'T copy) =====
 .venv/
 venv/
 ENV/
 env/
+.virtualenv
+.python-version
 
-# IDEs
+# ===== IDEs & Editors =====
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.DS_Store
+.claude/
+*.sublime-project
+*.sublime-workspace
 
-# Environment files
+# ===== Environment Files =====
 .env
 .env.local
+.env.*.local
+.env.production
+.env.development
+!.env.example
+*.key
+*.pem
+credentials.json
+secrets.json
 
-# Database
+# ===== Database Files (runtime generated) =====
 *.db
 *.sqlite
 *.sqlite3
 chatbot.db
+*.db-journal
+*.db-wal
+*.db-shm
+data/*.db
 
-# Logs
+# ===== Logs =====
 *.log
 logs/
+npm-debug.log*
+yarn-debug.log*
 
-# OS
+# ===== OS Files =====
 .DS_Store
 Thumbs.db
+Desktop.ini
+.AppleDouble
+.LSOverride
 
-# Git
-.git/
-.gitignore
-.gitattributes
-
-# Documentation
+# ===== Documentation =====
 *.md
+!README.md
 docs/
-README.md
-CLAUDE.md
+*.txt
+!requirements.txt
+!requirements-dev.txt
 
-# Test files
+# ===== Docker Files (no need to copy themselves) =====
+Dockerfile
+Dockerfile.*
+docker-compose*.yml
+.dockerignore
+
+# ===== Test Files (optional in production) =====
 test_*.py
 *_test.py
 tests/
 pytest.ini
 .pytest_cache/
+coverage/
 
-# Data files (can be large)
-data/
+# ===== Data & Uploads (mount as volumes) =====
+data/uploads/
+data/vector_store/
+data/faiss_index/
 uploads/
-*.csv
-*.xlsx
+DataManagment/uploads/
+qdrant_storage/
 
-# Reference materials
-Chatbot/Tham khảo/
-DataManagement/
+# ===== AI Models Cache (download in container) =====
+models/
+.cache/
+sentence-transformers/
+transformers_cache/
+huggingface/
+*.pkl
+*.joblib
+*.index
 
-# Temporary files
+# ===== Redis/Cache =====
+dump.rdb
+appendonly.aof
+
+# ===== Reference Materials =====
+Chatbot/Tham\ khảo/
+**/Tham khảo/**
+examples/
+reference/
+
+# ===== Temporary Files =====
 tmp/
 temp/
 *.tmp
+*.bak
+*.orig
+test_output/
+debug/
+
+# ===== Frontend (if not needed in backend container) =====
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# ===== Jupyter Notebooks =====
+*.ipynb
+.ipynb_checkpoints/
+
+# ===== Large Data Files =====
+*.csv
+*.xlsx
+*.json.gz
+*.tar.gz
+*.zip
+
+# ===== CI/CD =====
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# ===== Scripts (add if needed) =====
+scripts/
+*.sh
+!docker-entrypoint.sh

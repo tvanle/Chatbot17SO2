@@ -72,7 +72,8 @@ class VectorizerService:
             from sentence_transformers import SentenceTransformer
             logger.info("✓ sentence_transformers imported successfully")
 
-            self.model = SentenceTransformer(self.embed_model)
+            # Load model with trust_remote_code for Vietnamese models
+            self.model = SentenceTransformer(self.embed_model, trust_remote_code=True)
             logger.info(f"✅ Loaded embedding model: {self.embed_model}")
             logger.info(f"   Dimension: {self.model.get_sentence_embedding_dimension()}")
             print(f"✅ Loaded embedding model: {self.embed_model}")

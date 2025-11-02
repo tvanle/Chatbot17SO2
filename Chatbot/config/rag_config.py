@@ -14,8 +14,8 @@ class RAGConfig(BaseModel):
     """
 
     # ===== Embedding Model Settings =====
-    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
-    embedding_dimension: int = 384  # MiniLM dimension
+    embedding_model: str = "dangvantuan/vietnamese-document-embedding"
+    embedding_dimension: int = 768  # Vietnamese model dimension (changed from 384)
 
     # Alternative embedding models:
     # - "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2" (384 dim, multilingual)
