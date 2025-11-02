@@ -64,7 +64,15 @@ export function createMessageElement(text, type) {
     contentDiv.className = 'message-content';
 
     const textP = document.createElement('p');
-    textP.textContent = text;
+
+    // Convert basic markdown to HTML
+    const formattedText = text
+        .replace(/\n/g, '<br>')  // Newlines to <br>
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // **bold** to <strong>
+        .replace(/^- (.+)$/gm, '&bull; $1')  // - bullet to •
+        .replace(/^(\d+)\. (.+)$/gm, '$1. $2');  // Keep numbered lists
+
+    textP.innerHTML = formattedText;
     contentDiv.appendChild(textP);
 
     messageDiv.appendChild(contentDiv);
