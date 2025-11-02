@@ -30,8 +30,8 @@ if (!currentUser) {
 
         isSending = true;
         try {
-            await chatManager.sendMessage(text);
             DOM.messageInput.value = '';
+            await chatManager.sendMessage(text);
             DOM.messageInput.style.height = 'auto';
         } finally {
             isSending = false;
