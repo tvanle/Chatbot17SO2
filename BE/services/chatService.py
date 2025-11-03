@@ -116,11 +116,13 @@ class ChatService:
         user_msg = MessageDAO.create(db, chat_id, MessageType.user, content)
 
         # Gọi Chatbot service qua HTTP (microservice architecture)
+        # UPDATED: Use "ptit_docs" to enable multi-domain routing
+        # System will auto-detect domain and route to appropriate service
         try:
             response = requests.post(
                 f"{CHATBOT_SERVICE_URL}/api/rag/answer",
                 json={
-                    "namespace_id": "ptit_docs",
+                    "namespace_id": "ptit_docs",  # Default namespace - enables auto-routing
                     "question": content,
                     "top_k": 5,
                     "token_budget": 2000,

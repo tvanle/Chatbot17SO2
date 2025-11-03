@@ -17,6 +17,7 @@ from Chatbot.entities.RetrievalHit import RetrievalHit
 from Chatbot.services.VectorizerService import VectorizerService
 from Chatbot.services.RetrieverService import RetrieverService
 from Chatbot.services.GeneratorService import GeneratorService
+from Chatbot.services.DomainRouterService import DomainRouterService
 from Chatbot.dao.DocumentDAO import DocumentDAO
 from Chatbot.dao.ChunkDAO import ChunkDAO
 from Chatbot.dao.VectorIndexDAO import VectorIndexDAO
@@ -60,13 +61,19 @@ def get_generator_service(request: Request = None, model_name: str = None):
 @router.post("/answer", response_model=AnswerResult)
 async def answer(answer_request: AnswerRequest, request: Request, db: Session = Depends(get_db)):
     """
-    Answer endpoint - RAG query flow
+    Answer endpoint - ENHANCED Multi-Domain RAG query flow
 
-    TOÀN BỘ LOGIC RAG PIPELINE Ở ĐÂY:
-    1. Vectorize question
-    2. Retrieve similar chunks
-    3. Generate answer with LLM
-    4. Return với citations
+    NEW ARCHITECTURE:
+    1. Domain routing: Automatically detect question domain
+    2. Domain-specific processing: Use specialized service (admission, tuition, regulations, or general)
+    3. Vectorize, retrieve, and generate with domain-specific logic
+    4. Return answer with domain metadata
+
+    Supports:
+    - Automatic domain detection based on keywords
+    - Domain-specific preprocessing, filtering, and postprocessing
+    - Fallback to general service for unclassified questions
+    - Legacy mode: If namespace_id is provided, use it directly (backward compatible)
 
     Args:
         answer_request: AnswerRequest with question and parameters
@@ -77,44 +84,69 @@ async def answer(answer_request: AnswerRequest, request: Request, db: Session = 
         AnswerResult with generated answer and citations
     """
     try:
-        # ===== STEP 1: Vectorize question =====
+        # Get singleton services
         vectorizer = get_vectorizer_service(request)
-        query_vector = vectorizer.embed(answer_request.question)
+        generator = get_generator_service(request, answer_request.model)
 
-        # ===== STEP 2: Retrieve relevant chunks =====
-        retriever = RetrieverService(db)
-        hits = retriever.search(
-            namespace=answer_request.namespace_id,
-            query_vector=query_vector,
-            top_k=answer_request.top_k,
-            filters=None
-        )
+        # ===== NEW: Domain Routing =====
+        # If namespace_id is explicitly provided, skip routing (legacy mode)
+        if answer_request.namespace_id and answer_request.namespace_id != "ptit_docs":
+            # Legacy mode: Use traditional pipeline with specified namespace
+            retriever = RetrieverService(db)
+            query_vector = vectorizer.embed(answer_request.question)
 
-        if not hits:
-            return AnswerResult(
-                answer="Xin lỗi, tôi không tìm thấy thông tin liên quan đến câu hỏi của bạn trong cơ sở dữ liệu. "
-                       "Bạn có thể hỏi về quy chế đào tạo, thông tin tuyển sinh, hoặc các chính sách của PTIT.",
-                citations=[]
+            hits = retriever.search(
+                namespace=answer_request.namespace_id,
+                query_vector=query_vector,
+                top_k=answer_request.top_k,
+                filters=None
             )
 
-        # ===== STEP 3: Fit contexts within token budget =====
-        context_texts = [hit.chunk["text"] for hit in hits if hit.chunk]
-        contexts = fit_within_budget(context_texts, token_budget=answer_request.token_budget)
+            if not hits:
+                return AnswerResult(
+                    answer="Xin lỗi, tôi không tìm thấy thông tin liên quan đến câu hỏi của bạn trong cơ sở dữ liệu. "
+                           "Bạn có thể hỏi về quy chế đào tạo, thông tin tuyển sinh, hoặc các chính sách của PTIT.",
+                    citations=[]
+                )
 
-        # ===== STEP 4: Generate answer with LLM (dynamic model) =====
-        # Enhanced: Now supports conversation history for multi-turn conversations
-        generator = get_generator_service(request, answer_request.model)
-        answer_text = generator.generate(
+            context_texts = [hit.chunk["text"] for hit in hits if hit.chunk]
+            contexts = fit_within_budget(context_texts, token_budget=answer_request.token_budget)
+
+            answer_text = generator.generate(
+                question=answer_request.question,
+                contexts=contexts,
+                language="vi",
+                conversation_history=answer_request.conversation_history
+            )
+
+            return AnswerResult(
+                answer=answer_text,
+                citations=hits
+            )
+
+        # ===== ENHANCED MODE: Use Domain Router =====
+        router_service = DomainRouterService()
+
+        # Route to appropriate domain service
+        rag_service = router_service.route(
             question=answer_request.question,
-            contexts=contexts,
-            language="vi",
+            db=db,
+            vectorizer=vectorizer,
+            generator=generator
+        )
+
+        # Execute domain-specific RAG pipeline
+        result = rag_service.answer(
+            question=answer_request.question,
+            top_k=answer_request.top_k,
+            token_budget=answer_request.token_budget,
             conversation_history=answer_request.conversation_history
         )
 
-        # ===== STEP 5: Return result =====
+        # Return result with domain information
         return AnswerResult(
-            answer=answer_text,
-            citations=hits
+            answer=result["answer"],
+            citations=result["citations"]
         )
 
     except Exception as e:
@@ -144,10 +176,15 @@ async def ingest(ingest_request: IngestRequest, request: Request, db: Session = 
     try:
         # Step 1: Upsert document (Sequence diagram line 12-13)
         doc_dao = DocumentDAO(db)
+
+        # ENHANCED: Store category and metadata for domain filtering
+        import json
         document = Document(
             source_uri=ingest_request.namespace_id,  # Using namespace as source_uri for now
             title=ingest_request.document_title,
-            text=ingest_request.content
+            text=ingest_request.content,
+            category=ingest_request.category,  # NEW: Domain category
+            metadata_json=json.dumps(ingest_request.metadata) if ingest_request.metadata else None  # NEW: Metadata
         )
         doc_id = doc_dao.upsert(document)
 
@@ -270,6 +307,30 @@ async def delete_document(doc_id: str, db: Session = Depends(get_db)):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting document: {str(e)}")
+
+
+@router.post("/analyze-domain")
+async def analyze_domain(answer_request: AnswerRequest):
+    """
+    Debug endpoint to analyze domain routing for a question
+    Shows which domain would be selected and why
+
+    Args:
+        answer_request: AnswerRequest with question
+
+    Returns:
+        Domain analysis with matched keywords and routing decision
+    """
+    try:
+        router_service = DomainRouterService()
+        analysis = router_service.analyze_question(answer_request.question)
+
+        # Add available domains info
+        analysis["available_domains"] = router_service.get_domain_info()
+
+        return analysis
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error analyzing domain: {str(e)}")
 
 
 @router.get("/health")

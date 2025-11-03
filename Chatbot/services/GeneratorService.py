@@ -39,7 +39,8 @@ class GeneratorService:
         question: str,
         contexts: List[str],
         language: str = "vi",
-        conversation_history: Optional[List[Dict[str, str]]] = None
+        conversation_history: Optional[List[Dict[str, str]]] = None,
+        system_context: Optional[str] = None
     ) -> str:
         """
         Generate answer to question using context chunks with conversation history
@@ -51,6 +52,7 @@ class GeneratorService:
             conversation_history: Previous conversation turns in format:
                                  [{"role": "user|assistant", "content": "..."}]
                                  Will use last 10 messages to maintain context
+            system_context: Optional additional system context (for domain-specific prompts)
 
         Returns:
             Generated answer
@@ -59,7 +61,7 @@ class GeneratorService:
 
         # Build messages with conversation context
         messages = self._build_messages_with_context(
-            question, contexts, language, conversation_history
+            question, contexts, language, conversation_history, system_context
         )
 
         # Generate answer using LLM with conversation history
@@ -78,6 +80,7 @@ class GeneratorService:
         contexts: List[str],
         language: str,
         conversation_history: Optional[List[Dict[str, str]]] = None,
+        system_context: Optional[str] = None,
         max_history_turns: int = 10
     ) -> List[Dict[str, str]]:
         """
@@ -89,6 +92,7 @@ class GeneratorService:
             contexts: Retrieved RAG context chunks
             language: Language for response
             conversation_history: Previous conversation messages
+            system_context: Optional additional system context (domain-specific)
             max_history_turns: Maximum number of conversation turns to include
 
         Returns:
@@ -97,7 +101,10 @@ class GeneratorService:
         messages = []
 
         # Step 1: Build system message with RAG context (optimized, shorter prompt)
-        if language == "vi":
+        # Use custom system_context if provided (for domain-specific prompts)
+        if system_context:
+            system_content = system_context + "\n\n"
+        elif language == "vi":
             system_content = (
                 "Bạn là trợ lý AI của Học viện Công nghệ Bưu chính Viễn thông (PTIT). "
                 "Sử dụng thông tin được cung cấp để trả lời câu hỏi một cách chính xác, đầy đủ và thân thiện.\n\n"
