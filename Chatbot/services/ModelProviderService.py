@@ -69,11 +69,6 @@ class ModelProviderService:
                     "id": "gpt-4-turbo",
                     "name": "ChatGPT 4 Turbo",
                     "description": "GPT-4 với context window lớn hơn (128K tokens)"
-                },
-                {
-                    "id": "gpt-3.5-turbo",
-                    "name": "ChatGPT 3.5 Turbo",
-                    "description": "Nhanh và hiệu quả, phù hợp cho hầu hết các tác vụ"
                 }
             ]
 

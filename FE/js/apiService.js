@@ -31,20 +31,40 @@ export const apiService = {
         return await resp.json();
     },
 
-    // Send message
+    // Send message - DIRECTLY to RAG API (bypass chat service)
     async sendMessage(chatId, content, model = null) {
-        const formData = new FormData();
-        formData.append('chat_id', chatId);
-        formData.append('content', content);
-        if (model) {
-            formData.append('model', model);
-        }
+        console.log('🌐 Calling RAG API directly:', `${API_BASE}/api/rag/answer`);
+        console.log('📦 Question:', content);
 
-        const resp = await fetch(`${API_BASE}/api/chat/send`, {
+        const resp = await fetch(`${API_BASE}/api/rag/answer`, {
             method: 'POST',
-            body: formData,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                namespace_id: 'ptit_docs',
+                question: content,
+                top_k: 5,
+                token_budget: 2000
+            })
         });
-        return await resp.json();
+
+        console.log('📥 Response status:', resp.status);
+        const data = await resp.json();
+
+        // Transform RAG response to chat format
+        return {
+            ok: true,
+            message: 'Success',
+            bot_message: {
+                content: data.answer || 'Không có câu trả lời',
+                type: 'assistant'
+            },
+            user_message: {
+                content: content,
+                type: 'user'
+            }
+        };
     },
 
     // Get models
