@@ -143,10 +143,12 @@ async def answer(answer_request: AnswerRequest, request: Request, db: Session = 
             conversation_history=answer_request.conversation_history
         )
 
-        # Return result with domain information
+        # Return result with domain information for debugging
         return AnswerResult(
             answer=result["answer"],
-            citations=result["citations"]
+            citations=result["citations"],
+            domain=result.get("domain"),  # Domain name for debug
+            namespace=result.get("namespace")  # Namespace for debug
         )
 
     except Exception as e:

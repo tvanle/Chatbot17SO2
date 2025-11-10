@@ -137,6 +137,10 @@ class ChatService:
             bot_response = rag_result.get("answer", "Xin lỗi, tôi không thể trả lời câu hỏi này.")
             citations_count = len(rag_result.get("citations", []))
 
+            # Lấy thông tin domain service đã xử lý câu hỏi (để debug)
+            domain_name = rag_result.get("domain", "Unknown")
+            namespace = rag_result.get("namespace", "Unknown")
+            
         except requests.exceptions.RequestException as e:
             # Fallback nếu Chatbot service không available
             print(f"Chatbot service error: {e}")
@@ -145,6 +149,8 @@ class ChatService:
                 "Vui lòng thử lại sau hoặc liên hệ admin."
             )
             citations_count = 0
+            domain_name = "Error"
+            namespace = "Error"
 
         # Lưu bot message vào DB
         bot_msg = MessageDAO.create(
@@ -175,6 +181,8 @@ class ChatService:
             },
             "rag_info": {
                 "citations_count": citations_count,
+                "domain": domain_name,  # Thêm thông tin domain service đã xử lý
+                "namespace": namespace,  # Thêm thông tin namespace
             }
         }
 

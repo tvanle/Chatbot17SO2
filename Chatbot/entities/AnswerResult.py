@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 from .RetrievalHit import RetrievalHit
 
 
@@ -10,6 +10,8 @@ class AnswerResult(BaseModel):
     """
     answer: str = Field(..., description="Generated answer from LLM")
     citations: List[RetrievalHit] = Field(default_factory=list, description="Retrieved chunks used as context")
+    domain: Optional[str] = Field(None, description="Domain service that handled the question (for debugging)")
+    namespace: Optional[str] = Field(None, description="Namespace used for retrieval (for debugging)")
 
     class Config:
         json_schema_extra = {
