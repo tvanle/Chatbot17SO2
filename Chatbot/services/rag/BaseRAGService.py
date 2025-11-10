@@ -177,12 +177,16 @@ class BaseRAGService(ABC):
         # Bước 2: Chuyển câu hỏi thành vector
         query_vector = self.vectorizer.embed(processed_question)
 
-        # Bước 3: Tìm kiếm với namespace và filters riêng của domain
+        # Bước 3: Tìm kiếm TOÀN BỘ namespaces (vì data hiện tại phần lớn là general)
+        # Mặc dù tìm toàn bộ, mỗi domain vẫn có:
+        # - Preprocessing riêng (expand abbreviations, add context)
+        # - Custom prompt/system context riêng
+        # - Postprocessing riêng
         hits = self.retriever.search(
-            namespace=self.get_namespace(),
+            namespace=None,  # None = tìm tất cả namespaces
             query_vector=query_vector,
             top_k=top_k,
-            filters=self.get_search_filters()
+            filters=None  # Không filter để có nhiều kết quả hơn
         )
 
         # Xử lý trường hợp không tìm thấy kết quả

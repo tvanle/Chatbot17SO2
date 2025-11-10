@@ -77,7 +77,7 @@ class VectorIndexDAO:
 
     def query(
         self,
-        namespace: str,
+        namespace: Optional[str],
         query_vector: np.ndarray,
         top_k: int = 5,
         filters: Optional[Dict] = None
@@ -86,7 +86,7 @@ class VectorIndexDAO:
         Query vector index for similar chunks
 
         Args:
-            namespace: Namespace/collection identifier
+            namespace: Namespace/collection identifier (None = search all namespaces)
             query_vector: Query embedding vector
             top_k: Number of results to return
             filters: Optional filters (not implemented yet)
